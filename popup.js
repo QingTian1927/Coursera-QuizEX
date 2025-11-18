@@ -31,34 +31,48 @@ function unescapeFromInput(str) {
 }
 
 
-/* ---------------- SCRAPED DATA STORAGE MANAGEMENT ---------------- */
+/* ---------------- SCRAPED DATA STORAGE MANAGEMENT (via Background Worker) ---------------- */
 
-// Initialize scraped data storage when extension loads
-function initializeScrapedDataStorage() {
-    chrome.storage.local.set({
-        scrapedData: []
-    });
-}
-
-// Load scraped data from storage
+// Load scraped data from background service worker
 function loadScrapedDataFromStorage(callback) {
-    chrome.storage.local.get(["scrapedData"], res => {
-        console.log({data: res.scrapedData});
-        callback(res.scrapedData || []);
+    chrome.runtime.sendMessage({ action: 'getScrapedData' }, response => {
+        if (chrome.runtime.lastError) {
+            console.error('Error loading data:', chrome.runtime.lastError);
+            callback([]);
+            return;
+        }
+        console.log('Loaded data:', response);
+        callback(response?.data || []);
     });
 }
 
-// Save scraped data to storage
-function saveScrapedDataToStorage(data) {
-    chrome.storage.local.set({
-        scrapedData: data
+// Append scraped data via background service worker
+function appendScrapedDataToStorage(newData, callback) {
+    chrome.runtime.sendMessage({ 
+        action: 'appendScrapedData', 
+        data: newData 
+    }, response => {
+        if (chrome.runtime.lastError) {
+            console.error('Error appending data:', chrome.runtime.lastError);
+            callback(false);
+            return;
+        }
+        console.log('Appended data:', response);
+        callback(response?.success || false);
     });
 }
 
-// Clear scraped data storage
-function clearScrapedDataStorage() {
-    initializeScrapedDataStorage();
-    updatePreviewDisplay([]);
+// Clear scraped data via background service worker
+function clearScrapedDataStorage(callback) {
+    chrome.runtime.sendMessage({ action: 'clearScrapedData' }, response => {
+        if (chrome.runtime.lastError) {
+            console.error('Error clearing data:', chrome.runtime.lastError);
+            callback(false);
+            return;
+        }
+        console.log('Cleared data:', response);
+        callback(response?.success || false);
+    });
 }
 
 // Generate preview text from scraped data
@@ -92,8 +106,7 @@ function updatePreviewDisplay(data) {
     }
 }
 
-// Initialize on load
-initializeScrapedDataStorage();
+// Initialize on load - load existing data from background worker
 loadScrapedDataFromStorage(data => {
     updatePreviewDisplay(data);
 });
@@ -253,7 +266,7 @@ function requestScrapedData(callback) {
 }
 
 
-/* ---------------- SCRAPE + PREVIEW (WITH APPEND) ---------------- */
+/* ---------------- SCRAPE + PREVIEW (WITH APPEND via Background) ---------------- */
 
 document.getElementById("scrapeBtn").addEventListener("click", () => {
     requestScrapedData(response => {
@@ -265,16 +278,14 @@ document.getElementById("scrapeBtn").addEventListener("click", () => {
             return;
         }
 
-        // Load existing scraped data
-        loadScrapedDataFromStorage(existingData => {
-            // Append new data to existing
-            const updatedData = [...existingData, ...response.data];
-
-            // Save to storage
-            saveScrapedDataToStorage(updatedData);
-
-            // Update display
-            updatePreviewDisplay(updatedData);
+        // Append new data via background worker
+        appendScrapedDataToStorage(response.data, success => {
+            if (success) {
+                // Reload and update display
+                loadScrapedDataFromStorage(data => {
+                    updatePreviewDisplay(data);
+                });
+            }
         });
     });
 });
@@ -283,7 +294,11 @@ document.getElementById("scrapeBtn").addEventListener("click", () => {
 /* ---------------- CLEAR DATA BUTTON ---------------- */
 
 document.getElementById("clearBtn").addEventListener("click", () => {
-    clearScrapedDataStorage();
+    clearScrapedDataStorage(success => {
+        if (success) {
+            updatePreviewDisplay([]);
+        }
+    });
 });
 
 
