@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<style>
+    :root {
+        --bg: #ffffff;
+        --bg-secondary: #f9fafb;
+        --fg: #111827;
+        --fg-secondary: #6b7280;
+        --primary: #3b82f6;
+        --primary-hover: #2563eb;
+        --border: #e5e7eb;
+        --shadow: rgba(0, 0, 0, 0.1);
+        --success: #10b981;
+        --danger: #ef4444;
+        --danger-hover: #dc2626;
+    }
+
+    .dark {
+        --bg: #111827;
+        --bg-secondary: #1f2937;
+        --fg: #f9fafb;
+        --fg-secondary: #9ca3af;
+        --primary: #3b82f6;
+        --primary-hover: #60a5fa;
+        --border: #374151;
+        --shadow: rgba(0, 0, 0, 0.3);
+        --danger: #ef4444;
+        --danger-hover: #f87171;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        margin: 0;
+        padding: 0;
+        width: 340px;
+        background: var(--bg);
+        color: var(--fg);
+        transition: background 0.2s, color 0.2s;
+    }
+
+    /* Header */
+    .header {
+        background: var(--bg-secondary);
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .logo-section {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .logo {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, var(--primary), var(--success));
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    h2 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Language Select */
+    select {
+        background: var(--bg);
+        color: var(--fg);
+        border: 1px solid var(--border);
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: border-color 0.2s;
+    }
+
+    select:hover {
+        border-color: var(--primary);
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+        width: 44px;
+        height: 24px;
+        background: var(--border);
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .theme-toggle:hover {
+        background: var(--primary);
+    }
+
+    .theme-slider {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 50%;
+        transition: left 0.2s;
+        box-shadow: 0 2px 4px var(--shadow);
+    }
+
+    /* Icon Button */
+    .icon-btn {
+        width: 32px;
+        height: 32px;
+        background: var(--bg);
+        color: var(--fg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .icon-btn:hover {
+        background: var(--bg-secondary);
+        border-color: var(--primary);
+        transform: translateY(-1px);
+    }
+
+    /* Main Content */
+    .content {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* Button Grid */
+    .button-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    /* Primary Button */
+    .btn-primary {
+        width: 100%;
+        padding: 12px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s;
+        box-shadow: 0 2px 4px var(--shadow);
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px var(--shadow);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+    /* Danger Button */
+    .btn-danger {
+        padding: 12px;
+        background: var(--danger);
+        color: white;
+        border: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s;
+        box-shadow: 0 2px 4px var(--shadow);
+    }
+
+    .btn-danger:hover {
+        background: var(--danger-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px var(--shadow);
+    }
+
+    .btn-danger:active {
+        transform: translateY(0);
+    }
+
+    /* Preview Card */
+    .preview-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        min-height: 140px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .preview-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--fg-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .preview-count {
+        font-size: 11px;
+        background: var(--primary);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    #previewContent {
+        font-size: 12px;
+        line-height: 1.6;
+        white-space: pre-line;
+        color: var(--fg-secondary);
+    }
+
+    /* Download Buttons */
+    .download-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .btn-secondary {
+        padding: 10px;
+        background: var(--bg);
+        color: var(--fg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .btn-secondary:hover {
+        background: var(--bg-secondary);
+        border-color: var(--primary);
+        transform: translateY(-1px);
+    }
+
+    /* Settings Modal */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        animation: fadeIn 0.2s;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal {
+        background: var(--bg);
+        border-radius: 12px;
+        width: 300px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 25px -5px var(--shadow);
+        animation: slideUp 0.2s;
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: var(--fg-secondary);
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+        background: var(--bg-secondary);
+        color: var(--fg);
+    }
+
+    .modal-body {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--fg);
+    }
+
+    .form-hint {
+        font-size: 11px;
+        color: var(--fg-secondary);
+        margin-top: -4px;
+    }
+
+    .form-input {
+        background: var(--bg-secondary);
+        color: var(--fg);
+        border: 1px solid var(--border);
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-family: 'Courier New', monospace;
+        transition: all 0.2s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .modal-footer {
+        padding: 16px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-cancel {
+        flex: 1;
+        padding: 10px;
+        background: var(--bg-secondary);
+        color: var(--fg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .btn-save {
+        flex: 1;
+        padding: 10px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .btn-save:hover {
+        background: var(--primary-hover);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--fg-secondary);
+    }
+</style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo">📚</div>
+            <h2 id="title">Coursera Scraper</h2>
+        </div>
+        <div class="header-actions">
+            <select id="languageSelect">
+                <option value="VI" selected>VI</option>
+                <option value="EN">EN</option>
+            </select>
+            <div id="themeToggle" class="theme-toggle">
+                <div class="theme-slider" id="themeSlider"></div>
+            </div>
+            <button id="openSettings" class="icon-btn">⚙️</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <div class="button-grid">
+            <button id="scrapeBtn" class="btn-primary">
+                🔍 Scrape Coursera Page
+            </button>
+            <button id="clearBtn" class="btn-danger">
+                🗑️ Clear Data
+            </button>
+        </div>
+
+        <div class="preview-card">
+            <div class="preview-header">
+                <span class="preview-title" id="previewTitle">Preview</span>
+                <span class="preview-count" id="previewCount">0</span>
+            </div>
+            <div id="previewContent">No data yet…</div>
+        </div>
+
+        <div class="download-grid">
+            <button id="downloadJSON" class="btn-secondary">
+                <span>📄</span>
+                <span id="btnJSON">JSON</span>
+            </button>
+            <button id="downloadFormatted" class="btn-secondary">
+                <span>📝</span>
+                <span id="btnFormatted">Formatted</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Settings</h3>
+                <button id="closeSettings" class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" id="labelSeparator">Question Separator</label>
+                    <input type="text" id="inputSeparator" class="form-input" value="\\n" />
+                    <span class="form-hint" id="hintSeparator">Character(s) between question and choices</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" id="labelChoice">Choice Separator</label>
+                    <input type="text" id="inputChoice" class="form-input" value="\\n" />
+                    <span class="form-hint" id="hintChoice">Character(s) between each choice</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" id="labelAnswer">Answer Prefix</label>
+                    <input type="text" id="inputAnswer" class="form-input" value="/" />
+                    <span class="form-hint" id="hintAnswer">Character(s) before the selected answer</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" id="labelSuffix">Answer Suffix</label>
+                    <input type="text" id="inputSuffix" class="form-input" value=";" />
+                    <span class="form-hint" id="hintSuffix">Character(s) after the selected answer</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelSettings" class="btn-cancel" data-text-en="Cancel" data-text-vi="Hủy">Cancel</button>
+                <button id="saveSettings" class="btn-save" data-text-en="Save" data-text-vi="Lưu">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

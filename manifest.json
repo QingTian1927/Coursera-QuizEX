@@ -1,0 +1,26 @@
+{
+    "manifest_version": 3,
+    "name": "Coursera Question Scraper",
+    "description": "Automatically scrape Coursera questions and choices.",
+    "version": "1.0",
+  
+    "permissions": [
+      "activeTab",
+      "scripting",
+      "storage"
+    ],
+  
+    "action": {
+      "default_popup": "popup.html",
+      "default_title": "Coursera Question Scraper"
+    },
+  
+    "content_scripts": [
+      {
+        "matches": ["https://www.coursera.org/*"],
+        "js": ["content.js"],
+        "run_at": "document_idle"
+      }
+    ]
+  }
+  
