@@ -71,6 +71,8 @@ Use this method if you want to **modify the source code** or contribute:
 4. Choose a format (Normal / Formatted / JSON).
 5. View or download the output. 💡
 
+![Coursera QuizEX Demonstration Video](./assets/readme_demo.mp4)
+
 ---
 
 ## 📁 Output Examples
