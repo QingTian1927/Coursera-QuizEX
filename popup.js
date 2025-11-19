@@ -205,6 +205,7 @@ const UI_TEXT = {
     EN: {
         title: "Coursera QuizEX",
         scrape: "Scrape Page",
+        autoScrape: "Auto-Scrape",
         clear: "Clear Data",
         noData: "No data yet…",
         preview: "Preview",
@@ -233,6 +234,7 @@ const UI_TEXT = {
     VI: {
         title: "Coursera QuizEX",
         scrape: "Quét trang",
+        autoScrape: "Tự động quét",
         clear: "Xóa dữ liệu",
         noData: "Chưa có dữ liệu…",
         preview: "Xem trước",
@@ -264,6 +266,7 @@ function applyLanguage() {
     const t = UI_TEXT[currentLang];
     document.getElementById("title").innerText = t.title;
     document.getElementById("scrapeBtnText").innerText = t.scrape;
+    document.getElementById("autoScrapeBtnText").innerText = t.autoScrape;
     document.getElementById("clearBtnText").innerText = t.clear;
     document.getElementById("previewTitle").innerText = t.preview;
     document.getElementById("btnDownload").innerText = t.download;
@@ -433,6 +436,18 @@ document.getElementById("scrapeBtn").addEventListener("click", () => {
             }
         });
     });
+});
+
+
+/* ---------------- AUTO-SCRAPE BUTTON ---------------- */
+
+document.getElementById("autoScrapeBtn").addEventListener("click", () => {
+    // TODO: Implement auto-scrape functionality
+    // This will automatically find and scrape all assignments/quizzes
+    console.log("Auto-scrape button clicked - functionality to be implemented");
+    
+    // Placeholder: For now, just show an alert
+    alert("Auto-scrape feature coming soon!\n\nThis will automatically:\n• Find all assignments and quizzes\n• Navigate through them\n• Scrape all question data");
 });
 
 

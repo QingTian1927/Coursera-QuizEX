@@ -12,6 +12,7 @@
         --primary-hover: #1d4ed8;
         --border: #e0e0e0;
         --success: #16a34a;
+        --success-hover: #15803d;
         --danger: #dc2626;
         --danger-hover: #b91c1c;
     }
@@ -24,6 +25,8 @@
         --primary: #3b82f6;
         --primary-hover: #60a5fa;
         --border: #404040;
+        --success: #22c55e;
+        --success-hover: #4ade80;
         --danger: #ef4444;
         --danger-hover: #f87171;
     }
@@ -161,11 +164,15 @@
         gap: 12px;
     }
 
-    /* Button Grid */
+    /* Button Grid - Updated for 3 buttons */
     .button-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 10px;
+    }
+
+    .button-grid-full {
+        grid-column: 1 / -1;
     }
 
     /* Primary Button */
@@ -196,6 +203,37 @@
     }
 
     .btn-primary:active {
+        transform: scale(0.98);
+    }
+
+    /* Success Button */
+    .btn-success {
+        width: 100%;
+        padding: 12px;
+        background: var(--success);
+        color: white;
+        border: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-success svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .btn-success:hover {
+        background: var(--success-hover);
+    }
+
+    .btn-success:active {
         transform: scale(0.98);
     }
 
@@ -648,6 +686,14 @@
                     <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
                 </svg>
                 <span id="clearBtnText">Clear Data</span>
+            </button>
+            
+            <!-- New Auto-Scrape Button - Full Width -->
+            <button id="autoScrapeBtn" class="btn-success button-grid-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
+                </svg>
+                <span id="autoScrapeBtnText">Auto-Scrape</span>
             </button>
         </div>
 
