@@ -93,7 +93,7 @@ function generateNormalFormat(data) {
     data.forEach((q, i) => {
         output += `Q${i + 1}: ${q.question}\n`;
         q.choices.forEach(c => {
-            output += ` • ${c.text}${c.selected ? " ✓" : ""}\n`;
+            output += ` • ${c.text}${c.selected ? " (x)" : ""}\n`;
         });
         output += "\n";
     });
