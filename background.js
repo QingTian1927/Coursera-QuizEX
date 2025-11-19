@@ -2,8 +2,11 @@
 
 // Clear data when browser starts up
 chrome.runtime.onStartup.addListener(() => {
-    console.log('Browser started - clearing scraped data');
-    chrome.storage.local.set({ scrapedData: [] });
+    console.log('Browser started - clearing scraped data and resetting format');
+    chrome.storage.local.set({ 
+        scrapedData: [],
+        currentFormat: null  // Clear current format selection on browser startup
+    });
 });
 
 // Initialize storage on installation (first time only)
@@ -11,7 +14,10 @@ chrome.runtime.onInstalled.addListener(() => {
     console.log('Coursera Scraper Extension Installed');
     
     // Initialize storage with empty array
-    chrome.storage.local.set({ scrapedData: [] });
+    chrome.storage.local.set({ 
+        scrapedData: [],
+        currentFormat: null
+    });
 });
 
 // Handle messages from popup or content script

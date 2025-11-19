@@ -13,9 +13,13 @@ chrome.storage.sync.get(["formatSettings"], res => {
     if (res.formatSettings) {
         formatSettings = res.formatSettings;
         updateSettingsInputs();
-        // Set format selector to saved default
-        document.getElementById("formatSelect").value = formatSettings.defaultFormat || "normal";
     }
+});
+
+// Load current format selection (persisted via chrome.storage.local for this session)
+chrome.storage.local.get(["currentFormat"], res => {
+    const currentFormat = res.currentFormat || formatSettings.defaultFormat || "normal";
+    document.getElementById("formatSelect").value = currentFormat;
 });
 
 function updateSettingsInputs() {
@@ -200,8 +204,8 @@ languageSelect.addEventListener("change", () => {
 const UI_TEXT = {
     EN: {
         title: "Coursera Scraper",
-        scrape: "🔍 Scrape Coursera Page",
-        clear: "🗑️ Clear Data",
+        scrape: "Scrape Page",
+        clear: "Clear Data",
         noData: "No data yet…",
         preview: "Preview",
         download: "Download",
@@ -222,9 +226,9 @@ const UI_TEXT = {
         save: "Save"
     },
     VI: {
-        title: "Trích xuất Coursera",
-        scrape: "🔍 Quét trang Coursera",
-        clear: "🗑️ Xóa dữ liệu",
+        title: "Coursera Scraper",
+        scrape: "Quét trang",
+        clear: "Xóa dữ liệu",
         noData: "Chưa có dữ liệu…",
         preview: "Xem trước",
         download: "Tải xuống",
@@ -249,8 +253,8 @@ const UI_TEXT = {
 function applyLanguage() {
     const t = UI_TEXT[currentLang];
     document.getElementById("title").innerText = t.title;
-    document.getElementById("scrapeBtn").innerText = t.scrape;
-    document.getElementById("clearBtn").innerText = t.clear;
+    document.getElementById("scrapeBtnText").innerText = t.scrape;
+    document.getElementById("clearBtnText").innerText = t.clear;
     document.getElementById("previewTitle").innerText = t.preview;
     document.getElementById("btnDownload").innerText = t.download;
     document.getElementById("formatLabel").innerText = t.format;
@@ -267,6 +271,22 @@ function applyLanguage() {
     document.getElementById("hintSuffix").innerText = t.hintSuffix;
     document.getElementById("cancelSettings").innerText = t.cancel;
     document.getElementById("saveSettings").innerText = t.save;
+    
+    // Update format selector options
+    updateFormatOptions();
+}
+
+function updateFormatOptions() {
+    const formatSelect = document.getElementById("formatSelect");
+    const defaultFormatSelect = document.getElementById("defaultFormatSelect");
+    const attr = currentLang === "EN" ? "data-text-en" : "data-text-vi";
+    
+    [formatSelect, defaultFormatSelect].forEach(select => {
+        Array.from(select.options).forEach(option => {
+            const text = option.getAttribute(attr);
+            if (text) option.text = text;
+        });
+    });
 }
 
 
@@ -276,6 +296,10 @@ const formatSelect = document.getElementById("formatSelect");
 
 // Update preview when format changes
 formatSelect.addEventListener("change", () => {
+    // Save the selected format to session storage (chrome.storage.local)
+    chrome.storage.local.set({ currentFormat: formatSelect.value });
+    
+    // Update preview
     loadScrapedDataFromStorage(data => {
         updatePreviewDisplay(data);
     });
@@ -294,13 +318,15 @@ copyBtn.addEventListener("click", () => {
         const output = getFormattedOutput(data, selectedFormat);
         
         navigator.clipboard.writeText(output).then(() => {
-            // Visual feedback
-            const originalText = copyBtn.innerText;
-            copyBtn.innerText = "✓";
+            // Visual feedback - change icon to checkmark
+            const originalSVG = copyBtn.innerHTML;
+            copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/>
+            </svg>`;
             copyBtn.style.color = "var(--success)";
             
             setTimeout(() => {
-                copyBtn.innerText = originalText;
+                copyBtn.innerHTML = originalSVG;
                 copyBtn.style.color = "";
             }, 1500);
         }).catch(err => {
@@ -341,8 +367,8 @@ saveSettings.addEventListener("click", () => {
     };
     chrome.storage.sync.set({ formatSettings });
     
-    // Update format selector to match new default
-    document.getElementById("formatSelect").value = formatSettings.defaultFormat;
+    // Don't change the current format selector - keep user's active choice
+    // The default format only affects new sessions
     
     // Refresh preview with new settings
     loadScrapedDataFromStorage(data => {
