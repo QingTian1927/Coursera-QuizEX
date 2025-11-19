@@ -5,13 +5,18 @@ let formatSettings = {
     choiceSeparator: "\n",
     answerPrefix: "/",
     answerSuffix: ";",
-    defaultFormat: "normal"
+    defaultFormat: "normal",
+    navigationDelay: 1500,  // Default navigation delay in ms
+    feedbackDelay: 2000     // Default feedback button delay in ms
 };
 
 // Load saved format settings (persisted via chrome.storage.sync)
 chrome.storage.sync.get(["formatSettings"], res => {
     if (res.formatSettings) {
         formatSettings = res.formatSettings;
+        // Ensure delay settings exist (for backward compatibility)
+        if (!formatSettings.navigationDelay) formatSettings.navigationDelay = 1500;
+        if (!formatSettings.feedbackDelay) formatSettings.feedbackDelay = 2000;
         updateSettingsInputs();
     }
 });
@@ -28,6 +33,8 @@ function updateSettingsInputs() {
     document.getElementById("inputAnswer").value = escapeForDisplay(formatSettings.answerPrefix);
     document.getElementById("inputSuffix").value = escapeForDisplay(formatSettings.answerSuffix);
     document.getElementById("defaultFormatSelect").value = formatSettings.defaultFormat || "normal";
+    document.getElementById("inputNavigationDelay").value = formatSettings.navigationDelay || 1500;
+    document.getElementById("inputFeedbackDelay").value = formatSettings.feedbackDelay || 2000;
 }
 
 function escapeForDisplay(str) {
@@ -224,6 +231,10 @@ const UI_TEXT = {
         hintAnswer: "Character(s) before the selected answer",
         labelSuffix: "Answer Suffix",
         hintSuffix: "Character(s) after the selected answer",
+        labelNavigationDelay: "Navigation Delay (ms)",
+        hintNavigationDelay: "Wait time after page navigation",
+        labelFeedbackDelay: "Feedback Delay (ms)",
+        hintFeedbackDelay: "Wait time after clicking feedback button",
         cancel: "Cancel",
         save: "Save",
         infoVersion: "Version:",
@@ -253,6 +264,10 @@ const UI_TEXT = {
         hintAnswer: "Ký tự trước đáp án đã chọn",
         labelSuffix: "Hậu tố đáp án",
         hintSuffix: "Ký tự sau đáp án đã chọn",
+        labelNavigationDelay: "Độ trễ điều hướng (ms)",
+        hintNavigationDelay: "Thời gian chờ sau khi điều hướng trang",
+        labelFeedbackDelay: "Độ trễ phản hồi (ms)",
+        hintFeedbackDelay: "Thời gian chờ sau khi nhấn nút phản hồi",
         cancel: "Hủy",
         save: "Lưu",
         infoVersion: "Phiên bản:",
@@ -283,6 +298,10 @@ function applyLanguage() {
     document.getElementById("hintAnswer").innerText = t.hintAnswer;
     document.getElementById("labelSuffix").innerText = t.labelSuffix;
     document.getElementById("hintSuffix").innerText = t.hintSuffix;
+    document.getElementById("labelNavigationDelay").innerText = t.labelNavigationDelay;
+    document.getElementById("hintNavigationDelay").innerText = t.hintNavigationDelay;
+    document.getElementById("labelFeedbackDelay").innerText = t.labelFeedbackDelay;
+    document.getElementById("hintFeedbackDelay").innerText = t.hintFeedbackDelay;
     document.getElementById("cancelSettings").innerText = t.cancel;
     document.getElementById("saveSettings").innerText = t.save;
     document.getElementById("infoVersion").innerText = t.infoVersion;
@@ -381,7 +400,9 @@ saveSettings.addEventListener("click", () => {
         choiceSeparator: unescapeFromInput(document.getElementById("inputChoice").value),
         answerPrefix: unescapeFromInput(document.getElementById("inputAnswer").value),
         answerSuffix: unescapeFromInput(document.getElementById("inputSuffix").value),
-        defaultFormat: document.getElementById("defaultFormatSelect").value
+        defaultFormat: document.getElementById("defaultFormatSelect").value,
+        navigationDelay: parseInt(document.getElementById("inputNavigationDelay").value) || 1500,
+        feedbackDelay: parseInt(document.getElementById("inputFeedbackDelay").value) || 2000
     };
     chrome.storage.sync.set({ formatSettings });
     
@@ -441,13 +462,143 @@ document.getElementById("scrapeBtn").addEventListener("click", () => {
 
 /* ---------------- AUTO-SCRAPE BUTTON ---------------- */
 
+// Helper function to send messages to content script
+function sendMessageToTab(tabId, message) {
+    return new Promise((resolve, reject) => {
+        chrome.tabs.sendMessage(tabId, message, response => {
+            if (chrome.runtime.lastError) {
+                reject(chrome.runtime.lastError);
+            } else {
+                resolve(response);
+            }
+        });
+    });
+}
+
+// Helper function to navigate to a URL and wait for it to load
+function navigateToURL(tabId, url) {
+    return new Promise((resolve) => {
+        chrome.tabs.update(tabId, { url }, () => {
+            // Wait for the page to load
+            chrome.tabs.onUpdated.addListener(function listener(updatedTabId, changeInfo) {
+                if (updatedTabId === tabId && changeInfo.status === 'complete') {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    // Add extra delay to ensure content is fully rendered (using configured delay)
+                    setTimeout(() => resolve(), formatSettings.navigationDelay);
+                }
+            });
+        });
+    });
+}
+
+// Main auto-scrape function
+async function performAutoScrape() {
+    try {
+        // Get current tab
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tabs || !tabs[0]) {
+            alert("Error: Could not access current tab");
+            return;
+        }
+        const tabId = tabs[0].id;
+        
+        console.log("Step 1: Getting first course content...");
+        
+        // Step 1: Get first course content
+        let response = await sendMessageToTab(tabId, { action: "getFirstCourseContent" });
+        
+        if (!response || !response.data || !response.data.url) {
+            alert("Are you on the course welcome page?\n\nPlease navigate to the course main page where you can see all modules and lessons.");
+            return;
+        }
+        
+        console.log("Step 2: Navigating to first content page...");
+        
+        // Step 2: Navigate to the first content page (where modules are listed)
+        await navigateToURL(tabId, response.data.url);
+        
+        console.log("Step 3: Extracting assignments...");
+        
+        // Step 3: Extract assignments
+        response = await sendMessageToTab(tabId, { action: "extractAssignments" });
+        
+        if (!response || !response.data || response.data.length === 0) {
+            alert("No assignments or quizzes could be found on this page.\n\nPlease make sure you're on a page that shows the course modules.");
+            return;
+        }
+        
+        const assignments = response.data;
+        console.log(`Found ${assignments.length} assignments/quizzes`);
+        
+        let totalScraped = 0;
+        
+        // Step 4-8: Process each assignment sequentially
+        for (let i = 0; i < assignments.length; i++) {
+            const assignment = assignments[i];
+            console.log(`Processing ${i + 1}/${assignments.length}: ${assignment.title}`);
+            
+            // Navigate to assignment page
+            await navigateToURL(tabId, assignment.url);
+            
+            // Step 5: Check for feedback button
+            response = await sendMessageToTab(tabId, { action: "getViewFeedbackButton" });
+            
+            if (!response || !response.hasButton) {
+                console.log(`No feedback button found for: ${assignment.title}`);
+                continue; // Skip to next assignment
+            }
+            
+            // Step 6: Click feedback button and scrape
+            response = await sendMessageToTab(tabId, { 
+                action: "clickViewFeedbackButton",
+                delay: formatSettings.feedbackDelay
+            });
+            
+            if (response && response.success && response.data && response.data.length > 0) {
+                console.log(`Scraped ${response.data.length} questions from: ${assignment.title}`);
+                
+                // Save the data
+                await new Promise((resolve) => {
+                    appendScrapedDataToStorage(response.data, (success) => {
+                        if (success) {
+                            totalScraped += response.data.length;
+                        }
+                        resolve();
+                    });
+                });
+            } else {
+                console.log(`No data found for: ${assignment.title}`);
+            }
+        }
+        
+        // Update preview with all collected data
+        loadScrapedDataFromStorage(data => {
+            updatePreviewDisplay(data);
+        });
+        
+        alert(`Auto-scrape completed!\n\nTotal questions scraped: ${totalScraped}\nAssignments processed: ${assignments.length}`);
+        
+    } catch (error) {
+        console.error("Auto-scrape error:", error);
+        alert(`An error occurred during auto-scrape:\n\n${error.message || error}`);
+    }
+}
+
 document.getElementById("autoScrapeBtn").addEventListener("click", () => {
-    // TODO: Implement auto-scrape functionality
-    // This will automatically find and scrape all assignments/quizzes
-    console.log("Auto-scrape button clicked - functionality to be implemented");
+    // Disable button during scraping to prevent multiple clicks
+    const btn = document.getElementById("autoScrapeBtn");
+    const originalText = btn.querySelector("#autoScrapeBtnText").innerText;
     
-    // Placeholder: For now, just show an alert
-    alert("Auto-scrape feature coming soon!\n\nThis will automatically:\n• Find all assignments and quizzes\n• Navigate through them\n• Scrape all question data");
+    btn.disabled = true;
+    btn.style.opacity = "0.6";
+    btn.querySelector("#autoScrapeBtnText").innerText = "Scraping...";
+    
+    performAutoScrape().finally(() => {
+        // Re-enable button
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.querySelector("#autoScrapeBtnText").innerText = originalText;
+    });
 });
 
 
