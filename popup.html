@@ -349,6 +349,96 @@
         border-color: var(--primary);
     }
 
+    /* Info Section */
+    .info-toggle {
+        width: 100%;
+        padding: 6px;
+        background: transparent;
+        color: var(--fg-secondary);
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .info-toggle:hover {
+        background: var(--bg-secondary);
+        color: var(--fg);
+    }
+
+    .info-toggle svg {
+        width: 12px;
+        height: 12px;
+        transition: transform 0.2s;
+    }
+
+    .info-toggle.active svg {
+        transform: rotate(180deg);
+    }
+
+    .info-panel {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        background: var(--bg-secondary);
+        border-radius: 6px;
+        margin-top: -12px;
+    }
+
+    .info-panel.active {
+        max-height: 300px;
+        margin-top: 0;
+    }
+
+    .info-content {
+        padding: 12px;
+        font-size: 12px;
+        line-height: 1.8;
+    }
+
+    .info-row {
+        display: flex;
+        margin-bottom: 8px;
+    }
+
+    .info-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: var(--fg);
+        min-width: 70px;
+    }
+
+    .info-value {
+        color: var(--fg-secondary);
+        flex: 1;
+    }
+
+    .info-link {
+        color: var(--primary);
+        text-decoration: none;
+        transition: opacity 0.2s;
+    }
+
+    .info-link:hover {
+        opacity: 0.8;
+        text-decoration: underline;
+    }
+
+    .info-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 10px 0;
+    }
+
     /* Settings Modal */
     .modal-overlay {
         display: none;
@@ -601,6 +691,41 @@
             </svg>
             <span id="btnDownload">Download</span>
         </button>
+
+        <!-- Info Toggle Button -->
+        <button id="infoToggle" class="info-toggle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+            </svg>
+            <span id="infoToggleText">About</span>
+        </button>
+
+        <!-- Info Panel -->
+        <div id="infoPanel" class="info-panel">
+            <div class="info-content">
+                <div class="info-row">
+                    <span class="info-label" id="infoVersion">Version:</span>
+                    <span class="info-value">1.0.0</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label" id="infoAuthor">Author:</span>
+                    <span class="info-value">QingTian1927</span>
+                </div>
+                <div class="info-divider"></div>
+                <div class="info-row">
+                    <span class="info-label" id="infoGitHub">GitHub:</span>
+                    <span class="info-value">
+                        <a href="#" id="githubLink" class="info-link" target="_blank">Coming soon</a>
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label" id="infoHelp">Help:</span>
+                    <span class="info-value">
+                        <a href="#" id="helpLink" class="info-link" target="_blank">Coming soon</a>
+                    </span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Settings Modal -->

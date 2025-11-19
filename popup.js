@@ -203,7 +203,7 @@ languageSelect.addEventListener("change", () => {
 
 const UI_TEXT = {
     EN: {
-        title: "Coursera Scraper",
+        title: "Coursera QuizEX",
         scrape: "Scrape Page",
         clear: "Clear Data",
         noData: "No data yet…",
@@ -211,6 +211,7 @@ const UI_TEXT = {
         download: "Download",
         format: "Format:",
         copied: "Copied!",
+        about: "About",
         modalTitle: "Settings",
         labelDefaultFormat: "Default Output Format",
         hintDefaultFormat: "Format used for preview and download",
@@ -223,10 +224,14 @@ const UI_TEXT = {
         labelSuffix: "Answer Suffix",
         hintSuffix: "Character(s) after the selected answer",
         cancel: "Cancel",
-        save: "Save"
+        save: "Save",
+        infoVersion: "Version:",
+        infoAuthor: "Author:",
+        infoGitHub: "GitHub:",
+        infoHelp: "Help:"
     },
     VI: {
-        title: "Coursera Scraper",
+        title: "Coursera QuizEX",
         scrape: "Quét trang",
         clear: "Xóa dữ liệu",
         noData: "Chưa có dữ liệu…",
@@ -234,6 +239,7 @@ const UI_TEXT = {
         download: "Tải xuống",
         format: "Định dạng:",
         copied: "Đã sao chép!",
+        about: "Thông tin",
         modalTitle: "Cài đặt",
         labelDefaultFormat: "Định dạng mặc định",
         hintDefaultFormat: "Định dạng dùng để xem trước và tải xuống",
@@ -246,7 +252,11 @@ const UI_TEXT = {
         labelSuffix: "Hậu tố đáp án",
         hintSuffix: "Ký tự sau đáp án đã chọn",
         cancel: "Hủy",
-        save: "Lưu"
+        save: "Lưu",
+        infoVersion: "Phiên bản:",
+        infoAuthor: "Tác giả:",
+        infoGitHub: "GitHub:",
+        infoHelp: "Trợ giúp:"
     }
 };
 
@@ -258,6 +268,7 @@ function applyLanguage() {
     document.getElementById("previewTitle").innerText = t.preview;
     document.getElementById("btnDownload").innerText = t.download;
     document.getElementById("formatLabel").innerText = t.format;
+    document.getElementById("infoToggleText").innerText = t.about;
     document.getElementById("modalTitle").innerText = t.modalTitle;
     document.getElementById("labelDefaultFormat").innerText = t.labelDefaultFormat;
     document.getElementById("hintDefaultFormat").innerText = t.hintDefaultFormat;
@@ -271,6 +282,10 @@ function applyLanguage() {
     document.getElementById("hintSuffix").innerText = t.hintSuffix;
     document.getElementById("cancelSettings").innerText = t.cancel;
     document.getElementById("saveSettings").innerText = t.save;
+    document.getElementById("infoVersion").innerText = t.infoVersion;
+    document.getElementById("infoAuthor").innerText = t.infoAuthor;
+    document.getElementById("infoGitHub").innerText = t.infoGitHub;
+    document.getElementById("infoHelp").innerText = t.infoHelp;
     
     // Update format selector options
     updateFormatOptions();
@@ -460,4 +475,15 @@ document.getElementById("downloadBtn").addEventListener("click", () => {
         a.click();
         URL.revokeObjectURL(url);
     });
+});
+
+
+/* ---------------- INFO PANEL TOGGLE ---------------- */
+
+const infoToggle = document.getElementById("infoToggle");
+const infoPanel = document.getElementById("infoPanel");
+
+infoToggle.addEventListener("click", () => {
+    const isActive = infoPanel.classList.toggle("active");
+    infoToggle.classList.toggle("active", isActive);
 });
