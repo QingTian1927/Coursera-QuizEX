@@ -117,7 +117,7 @@ function generateFormattedOutput(data) {
                    sel + 
                    formatSettings.answerSuffix;
         })
-        .join("\n\n");
+        .join("");
 }
 
 // Generate JSON format

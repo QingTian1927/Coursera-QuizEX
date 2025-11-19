@@ -3,6 +3,8 @@
 A lightweight browser extension that helps learners **extract quiz questions** from Coursera assignments and convert them into convenient study materials.
 Coursera QuizEX lets you gather **question groups** (questions + their choices) and export them in multiple formats for personal learning. ✨
 
+![Coursera QuizEX Banner](./assets/readme_banner.png)
+
 ---
 
 ## ✨ Features
