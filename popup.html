@@ -5,27 +5,25 @@
 <style>
     :root {
         --bg: #ffffff;
-        --bg-secondary: #f9fafb;
-        --fg: #111827;
-        --fg-secondary: #6b7280;
-        --primary: #3b82f6;
-        --primary-hover: #2563eb;
-        --border: #e5e7eb;
-        --shadow: rgba(0, 0, 0, 0.1);
-        --success: #10b981;
-        --danger: #ef4444;
-        --danger-hover: #dc2626;
+        --bg-secondary: #f5f5f5;
+        --fg: #1a1a1a;
+        --fg-secondary: #666666;
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --border: #e0e0e0;
+        --success: #16a34a;
+        --danger: #dc2626;
+        --danger-hover: #b91c1c;
     }
 
     .dark {
-        --bg: #111827;
-        --bg-secondary: #1f2937;
-        --fg: #f9fafb;
-        --fg-secondary: #9ca3af;
+        --bg: #1a1a1a;
+        --bg-secondary: #2a2a2a;
+        --fg: #f5f5f5;
+        --fg-secondary: #a0a0a0;
         --primary: #3b82f6;
         --primary-hover: #60a5fa;
-        --border: #374151;
-        --shadow: rgba(0, 0, 0, 0.3);
+        --border: #404040;
         --danger: #ef4444;
         --danger-hover: #f87171;
     }
@@ -63,8 +61,8 @@
     .logo {
         width: 32px;
         height: 32px;
-        background: linear-gradient(135deg, var(--primary), var(--success));
-        border-radius: 8px;
+        background: var(--primary);
+        border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -80,22 +78,27 @@
     .header-actions {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
     }
 
-    /* Language Select */
+    /* Select Dropdown */
     select {
         background: var(--bg);
         color: var(--fg);
         border: 1px solid var(--border);
         padding: 6px 10px;
-        border-radius: 8px;
+        border-radius: 6px;
         font-size: 13px;
         cursor: pointer;
         transition: border-color 0.2s;
     }
 
     select:hover {
+        border-color: var(--primary);
+    }
+
+    select:focus {
+        outline: none;
         border-color: var(--primary);
     }
 
@@ -123,7 +126,6 @@
         background: white;
         border-radius: 50%;
         transition: left 0.2s;
-        box-shadow: 0 2px 4px var(--shadow);
     }
 
     /* Icon Button */
@@ -133,7 +135,7 @@
         background: var(--bg);
         color: var(--fg);
         border: 1px solid var(--border);
-        border-radius: 8px;
+        border-radius: 6px;
         cursor: pointer;
         font-size: 16px;
         display: flex;
@@ -145,7 +147,6 @@
     .icon-btn:hover {
         background: var(--bg-secondary);
         border-color: var(--primary);
-        transform: translateY(-1px);
     }
 
     /* Main Content */
@@ -173,19 +174,16 @@
         font-size: 14px;
         font-weight: 600;
         cursor: pointer;
-        border-radius: 8px;
+        border-radius: 6px;
         transition: all 0.2s;
-        box-shadow: 0 2px 4px var(--shadow);
     }
 
     .btn-primary:hover {
         background: var(--primary-hover);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px var(--shadow);
     }
 
     .btn-primary:active {
-        transform: translateY(0);
+        transform: scale(0.98);
     }
 
     /* Danger Button */
@@ -197,26 +195,40 @@
         font-size: 14px;
         font-weight: 600;
         cursor: pointer;
-        border-radius: 8px;
+        border-radius: 6px;
         transition: all 0.2s;
-        box-shadow: 0 2px 4px var(--shadow);
     }
 
     .btn-danger:hover {
         background: var(--danger-hover);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px var(--shadow);
     }
 
     .btn-danger:active {
-        transform: translateY(0);
+        transform: scale(0.98);
+    }
+
+    /* Format Selector */
+    .format-selector {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .format-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--fg-secondary);
+    }
+
+    .format-select {
+        flex: 1;
     }
 
     /* Preview Card */
     .preview-card {
         background: var(--bg-secondary);
         border: 1px solid var(--border);
-        border-radius: 12px;
+        border-radius: 8px;
         padding: 12px;
         min-height: 140px;
         max-height: 200px;
@@ -240,11 +252,33 @@
         letter-spacing: 0.5px;
     }
 
+    .preview-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .copy-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 4px;
+        color: var(--fg-secondary);
+        transition: color 0.2s;
+        display: flex;
+        align-items: center;
+    }
+
+    .copy-btn:hover {
+        color: var(--primary);
+    }
+
     .preview-count {
         font-size: 11px;
         background: var(--primary);
         color: white;
-        padding: 2px 8px;
+        padding: 3px 10px;
         border-radius: 12px;
         font-weight: 600;
     }
@@ -256,19 +290,14 @@
         color: var(--fg-secondary);
     }
 
-    /* Download Buttons */
-    .download-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-
-    .btn-secondary {
+    /* Download Button */
+    .btn-download {
+        width: 100%;
         padding: 10px;
         background: var(--bg);
         color: var(--fg);
         border: 1px solid var(--border);
-        border-radius: 8px;
+        border-radius: 6px;
         cursor: pointer;
         font-size: 13px;
         font-weight: 500;
@@ -279,10 +308,9 @@
         gap: 6px;
     }
 
-    .btn-secondary:hover {
+    .btn-download:hover {
         background: var(--bg-secondary);
         border-color: var(--primary);
-        transform: translateY(-1px);
     }
 
     /* Settings Modal */
@@ -311,11 +339,10 @@
 
     .modal {
         background: var(--bg);
-        border-radius: 12px;
+        border-radius: 8px;
         width: 300px;
         max-height: 90vh;
         overflow-y: auto;
-        box-shadow: 0 20px 25px -5px var(--shadow);
         animation: slideUp 0.2s;
     }
 
@@ -388,7 +415,7 @@
         color: var(--fg);
         border: 1px solid var(--border);
         padding: 8px 12px;
-        border-radius: 8px;
+        border-radius: 6px;
         font-size: 13px;
         font-family: 'Courier New', monospace;
         transition: all 0.2s;
@@ -397,7 +424,6 @@
     .form-input:focus {
         outline: none;
         border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
     .modal-footer {
@@ -413,11 +439,15 @@
         background: var(--bg-secondary);
         color: var(--fg);
         border: 1px solid var(--border);
-        border-radius: 8px;
+        border-radius: 6px;
         cursor: pointer;
         font-size: 13px;
         font-weight: 500;
         transition: all 0.2s;
+    }
+
+    .btn-cancel:hover {
+        background: var(--border);
     }
 
     .btn-save {
@@ -426,7 +456,7 @@
         background: var(--primary);
         color: white;
         border: none;
-        border-radius: 8px;
+        border-radius: 6px;
         cursor: pointer;
         font-size: 13px;
         font-weight: 600;
@@ -487,24 +517,33 @@
             </button>
         </div>
 
+        <!-- Format Selector -->
+        <div class="format-selector">
+            <span class="format-label" id="formatLabel">Format:</span>
+            <select id="formatSelect" class="format-select">
+                <option value="normal">Normal</option>
+                <option value="formatted">Formatted</option>
+                <option value="json">JSON</option>
+            </select>
+        </div>
+
+        <!-- Preview Card -->
         <div class="preview-card">
             <div class="preview-header">
                 <span class="preview-title" id="previewTitle">Preview</span>
-                <span class="preview-count" id="previewCount">0</span>
+                <div class="preview-actions">
+                    <button id="copyBtn" class="copy-btn" title="Copy to clipboard">📋</button>
+                    <span class="preview-count" id="previewCount">0</span>
+                </div>
             </div>
             <div id="previewContent">No data yet…</div>
         </div>
 
-        <div class="download-grid">
-            <button id="downloadJSON" class="btn-secondary">
-                <span>📄</span>
-                <span id="btnJSON">JSON</span>
-            </button>
-            <button id="downloadFormatted" class="btn-secondary">
-                <span>📝</span>
-                <span id="btnFormatted">Formatted</span>
-            </button>
-        </div>
+        <!-- Download Button -->
+        <button id="downloadBtn" class="btn-download">
+            <span>💾</span>
+            <span id="btnDownload">Download</span>
+        </button>
     </div>
 
     <!-- Settings Modal -->
@@ -516,13 +555,22 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
+                    <label class="form-label" id="labelDefaultFormat">Default Output Format</label>
+                    <select id="defaultFormatSelect" class="form-input">
+                        <option value="normal">Normal</option>
+                        <option value="formatted">Formatted</option>
+                        <option value="json">JSON</option>
+                    </select>
+                    <span class="form-hint" id="hintDefaultFormat">Format used for preview and download</span>
+                </div>
+                <div class="form-group">
                     <label class="form-label" id="labelSeparator">Question Separator</label>
-                    <input type="text" id="inputSeparator" class="form-input" value="\\n" />
+                    <input type="text" id="inputSeparator" class="form-input" value="\n" />
                     <span class="form-hint" id="hintSeparator">Character(s) between question and choices</span>
                 </div>
                 <div class="form-group">
                     <label class="form-label" id="labelChoice">Choice Separator</label>
-                    <input type="text" id="inputChoice" class="form-input" value="\\n" />
+                    <input type="text" id="inputChoice" class="form-input" value="\n" />
                     <span class="form-hint" id="hintChoice">Character(s) between each choice</span>
                 </div>
                 <div class="form-group">
@@ -537,8 +585,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="cancelSettings" class="btn-cancel" data-text-en="Cancel" data-text-vi="Hủy">Cancel</button>
-                <button id="saveSettings" class="btn-save" data-text-en="Save" data-text-vi="Lưu">Save</button>
+                <button id="cancelSettings" class="btn-cancel">Cancel</button>
+                <button id="saveSettings" class="btn-save">Save</button>
             </div>
         </div>
     </div>

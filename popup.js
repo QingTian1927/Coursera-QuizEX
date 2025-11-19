@@ -4,14 +4,17 @@ let formatSettings = {
     questionSeparator: "\n\n",
     choiceSeparator: "\n",
     answerPrefix: "/",
-    answerSuffix: ";"
+    answerSuffix: ";",
+    defaultFormat: "normal"
 };
 
-// Load saved format settings
+// Load saved format settings (persisted via chrome.storage.sync)
 chrome.storage.sync.get(["formatSettings"], res => {
     if (res.formatSettings) {
         formatSettings = res.formatSettings;
         updateSettingsInputs();
+        // Set format selector to saved default
+        document.getElementById("formatSelect").value = formatSettings.defaultFormat || "normal";
     }
 });
 
@@ -20,6 +23,7 @@ function updateSettingsInputs() {
     document.getElementById("inputChoice").value = escapeForDisplay(formatSettings.choiceSeparator);
     document.getElementById("inputAnswer").value = escapeForDisplay(formatSettings.answerPrefix);
     document.getElementById("inputSuffix").value = escapeForDisplay(formatSettings.answerSuffix);
+    document.getElementById("defaultFormatSelect").value = formatSettings.defaultFormat || "normal";
 }
 
 function escapeForDisplay(str) {
@@ -75,33 +79,75 @@ function clearScrapedDataStorage(callback) {
     });
 }
 
-// Generate preview text from scraped data
-function generatePreviewText(data) {
-    if (!data || data.length === 0) {
-        return "";
-    }
+/* ---------------- FORMAT GENERATION ---------------- */
 
-    let preview = "";
+// Generate normal format (simple preview)
+function generateNormalFormat(data) {
+    if (!data || data.length === 0) return "";
+
+    let output = "";
     data.forEach((q, i) => {
-        preview += `Q${i + 1}: ${q.question}\n`;
+        output += `Q${i + 1}: ${q.question}\n`;
         q.choices.forEach(c => {
-            preview += ` • ${c.text}${c.selected ? " ✓" : ""}\n`;
+            output += ` • ${c.text}${c.selected ? " ✓" : ""}\n`;
         });
-        preview += "\n";
+        output += "\n";
     });
-    return preview;
+    return output;
 }
 
-// Update preview display
+// Generate formatted output (flashcard format)
+function generateFormattedOutput(data) {
+    if (!data || data.length === 0) return "";
+
+    return data
+        .map(q => {
+            const sel = q.choices.find(c => c.selected)?.text || "";
+            const choicesText = q.choices.map(c => c.text).join(formatSettings.choiceSeparator);
+            
+            return q.question + 
+                   formatSettings.questionSeparator + 
+                   choicesText + 
+                   "\n" +
+                   formatSettings.answerPrefix + 
+                   sel + 
+                   formatSettings.answerSuffix;
+        })
+        .join("\n\n");
+}
+
+// Generate JSON format
+function generateJSONFormat(data) {
+    if (!data || data.length === 0) return "";
+    return JSON.stringify(data, null, 2);
+}
+
+// Get formatted output based on selected format
+function getFormattedOutput(data, format) {
+    switch(format) {
+        case "normal":
+            return generateNormalFormat(data);
+        case "formatted":
+            return generateFormattedOutput(data);
+        case "json":
+            return generateJSONFormat(data);
+        default:
+            return generateNormalFormat(data);
+    }
+}
+
+// Update preview display based on selected format
 function updatePreviewDisplay(data) {
     const previewContent = document.getElementById("previewContent");
     const previewCount = document.getElementById("previewCount");
+    const formatSelect = document.getElementById("formatSelect");
     
     if (!data || data.length === 0) {
         previewContent.innerText = UI_TEXT[currentLang].noData;
         previewCount.innerText = "0";
     } else {
-        previewContent.innerText = generatePreviewText(data);
+        const selectedFormat = formatSelect.value;
+        previewContent.innerText = getFormattedOutput(data, selectedFormat);
         previewCount.innerText = data.length.toString();
     }
 }
@@ -157,10 +203,13 @@ const UI_TEXT = {
         scrape: "🔍 Scrape Coursera Page",
         clear: "🗑️ Clear Data",
         noData: "No data yet…",
-        json: "JSON",
-        formatted: "Formatted",
         preview: "Preview",
-        modalTitle: "Format Settings",
+        download: "Download",
+        format: "Format:",
+        copied: "Copied!",
+        modalTitle: "Settings",
+        labelDefaultFormat: "Default Output Format",
+        hintDefaultFormat: "Format used for preview and download",
         labelSeparator: "Question Separator",
         hintSeparator: "Character(s) between question and choices",
         labelChoice: "Choice Separator",
@@ -177,10 +226,13 @@ const UI_TEXT = {
         scrape: "🔍 Quét trang Coursera",
         clear: "🗑️ Xóa dữ liệu",
         noData: "Chưa có dữ liệu…",
-        json: "JSON",
-        formatted: "Định dạng",
         preview: "Xem trước",
-        modalTitle: "Cài đặt định dạng",
+        download: "Tải xuống",
+        format: "Định dạng:",
+        copied: "Đã sao chép!",
+        modalTitle: "Cài đặt",
+        labelDefaultFormat: "Định dạng mặc định",
+        hintDefaultFormat: "Định dạng dùng để xem trước và tải xuống",
         labelSeparator: "Phân cách câu hỏi",
         hintSeparator: "Ký tự giữa câu hỏi và các lựa chọn",
         labelChoice: "Phân cách lựa chọn",
@@ -199,10 +251,12 @@ function applyLanguage() {
     document.getElementById("title").innerText = t.title;
     document.getElementById("scrapeBtn").innerText = t.scrape;
     document.getElementById("clearBtn").innerText = t.clear;
-    document.getElementById("btnJSON").innerText = t.json;
-    document.getElementById("btnFormatted").innerText = t.formatted;
     document.getElementById("previewTitle").innerText = t.preview;
+    document.getElementById("btnDownload").innerText = t.download;
+    document.getElementById("formatLabel").innerText = t.format;
     document.getElementById("modalTitle").innerText = t.modalTitle;
+    document.getElementById("labelDefaultFormat").innerText = t.labelDefaultFormat;
+    document.getElementById("hintDefaultFormat").innerText = t.hintDefaultFormat;
     document.getElementById("labelSeparator").innerText = t.labelSeparator;
     document.getElementById("hintSeparator").innerText = t.hintSeparator;
     document.getElementById("labelChoice").innerText = t.labelChoice;
@@ -214,6 +268,46 @@ function applyLanguage() {
     document.getElementById("cancelSettings").innerText = t.cancel;
     document.getElementById("saveSettings").innerText = t.save;
 }
+
+
+/* ---------------- FORMAT SELECTOR ---------------- */
+
+const formatSelect = document.getElementById("formatSelect");
+
+// Update preview when format changes
+formatSelect.addEventListener("change", () => {
+    loadScrapedDataFromStorage(data => {
+        updatePreviewDisplay(data);
+    });
+});
+
+
+/* ---------------- COPY TO CLIPBOARD ---------------- */
+
+const copyBtn = document.getElementById("copyBtn");
+
+copyBtn.addEventListener("click", () => {
+    loadScrapedDataFromStorage(data => {
+        if (!data || data.length === 0) return;
+        
+        const selectedFormat = formatSelect.value;
+        const output = getFormattedOutput(data, selectedFormat);
+        
+        navigator.clipboard.writeText(output).then(() => {
+            // Visual feedback
+            const originalText = copyBtn.innerText;
+            copyBtn.innerText = "✓";
+            copyBtn.style.color = "var(--success)";
+            
+            setTimeout(() => {
+                copyBtn.innerText = originalText;
+                copyBtn.style.color = "";
+            }, 1500);
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+        });
+    });
+});
 
 
 /* ---------------- SETTINGS MODAL ---------------- */
@@ -242,9 +336,19 @@ saveSettings.addEventListener("click", () => {
         questionSeparator: unescapeFromInput(document.getElementById("inputSeparator").value),
         choiceSeparator: unescapeFromInput(document.getElementById("inputChoice").value),
         answerPrefix: unescapeFromInput(document.getElementById("inputAnswer").value),
-        answerSuffix: unescapeFromInput(document.getElementById("inputSuffix").value)
+        answerSuffix: unescapeFromInput(document.getElementById("inputSuffix").value),
+        defaultFormat: document.getElementById("defaultFormatSelect").value
     };
     chrome.storage.sync.set({ formatSettings });
+    
+    // Update format selector to match new default
+    document.getElementById("formatSelect").value = formatSettings.defaultFormat;
+    
+    // Refresh preview with new settings
+    loadScrapedDataFromStorage(data => {
+        updatePreviewDisplay(data);
+    });
+    
     settingsModal.classList.remove("active");
 });
 
@@ -302,49 +406,31 @@ document.getElementById("clearBtn").addEventListener("click", () => {
 });
 
 
-/* ---------------- DOWNLOAD JSON ---------------- */
+/* ---------------- UNIFIED DOWNLOAD BUTTON ---------------- */
 
-document.getElementById("downloadJSON").addEventListener("click", () => {
+document.getElementById("downloadBtn").addEventListener("click", () => {
     loadScrapedDataFromStorage(data => {
         if (!data || data.length === 0) return;
 
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const selectedFormat = formatSelect.value;
+        const output = getFormattedOutput(data, selectedFormat);
+        
+        let blob, filename;
+        
+        if (selectedFormat === "json") {
+            blob = new Blob([output], { type: "application/json" });
+            filename = "coursera_questions.json";
+        } else {
+            blob = new Blob([output], { type: "text/plain" });
+            filename = selectedFormat === "formatted" 
+                ? "coursera_flashcards.txt" 
+                : "coursera_questions.txt";
+        }
+        
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "coursera_questions.json";
-        a.click();
-        URL.revokeObjectURL(url);
-    });
-});
-
-
-/* ---------------- DOWNLOAD FORMATTED WITH CUSTOM SETTINGS ---------------- */
-
-document.getElementById("downloadFormatted").addEventListener("click", () => {
-    loadScrapedDataFromStorage(data => {
-        if (!data || data.length === 0) return;
-
-        const out = data
-            .map(q => {
-                const sel = q.choices.find(c => c.selected)?.text || "";
-                const choicesText = q.choices.map(c => c.text).join(formatSettings.choiceSeparator);
-                
-                return q.question + 
-                       formatSettings.questionSeparator + 
-                       choicesText + 
-                       "\n" +
-                       formatSettings.answerPrefix + 
-                       sel + 
-                       formatSettings.answerSuffix;
-            })
-            .join("");
-
-        const blob = new Blob([out], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "coursera_flashcards.txt";
+        a.download = filename;
         a.click();
         URL.revokeObjectURL(url);
     });
