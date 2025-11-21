@@ -96,9 +96,11 @@ function clearScrapedDataStorage(callback) {
 function generateNormalFormat(data) {
     if (!data || data.length === 0) return "";
 
+    const t = UI_TEXT[currentLang];
+
     let output = "";
     data.forEach((q, i) => {
-        output += `Q${i + 1}: ${q.question}\n`;
+        output += `Q${i + 1}: ${q.question} ${!q.correct ? `(${t.incorrect})` : ''}\n`;
         q.choices.forEach(c => {
             output += ` • ${c.text}${c.selected ? " (x)" : ""}\n`;
         });
@@ -111,10 +113,13 @@ function generateNormalFormat(data) {
 function generateFormattedOutput(data) {
     if (!data || data.length === 0) return "";
 
+    const t = UI_TEXT[currentLang];
+
     return data
         .map(q => {
             const sel = q.choices.find(c => c.selected)?.text || "";
             const choicesText = q.choices.map(c => c.text).join(formatSettings.choiceSeparator);
+            const statusText = !q.correct ? ` (${t.incorrect})` : '';
             
             return q.question + 
                    formatSettings.questionSeparator + 
@@ -122,6 +127,7 @@ function generateFormattedOutput(data) {
                    "\n" +
                    formatSettings.answerPrefix + 
                    sel + 
+                   statusText +
                    formatSettings.answerSuffix;
         })
         .join("");
@@ -262,7 +268,9 @@ const UI_TEXT = {
         logNoQuestionsFound: "No questions found",
         logSavingData: "Saving data...",
         logCompleted: (total, count) => `Completed! Total questions: ${total}, Assignments processed: ${count}`,
-        logError: (error) => `Error: ${error}`
+        logError: (error) => `Error: ${error}`,
+        correct: "answered correctly",
+        incorrect: "answered incorrectly"
     },
     VI: {
         title: "Coursera QuizEX",
@@ -317,7 +325,9 @@ const UI_TEXT = {
         logNoQuestionsFound: "Không tìm thấy câu hỏi",
         logSavingData: "Lưu dữ liệu...",
         logCompleted: (total, count) => `Hoàn tất! Tổng số câu hỏi: ${total}, Bài tập đã xử lý: ${count}`,
-        logError: (error) => `Lỗi: ${error}`
+        logError: (error) => `Lỗi: ${error}`,
+        correct: "trả lời đúng",
+        incorrect: "trả lời sai"
     }
 };
 

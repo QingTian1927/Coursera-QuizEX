@@ -21,7 +21,10 @@ function scrapeCoursera() {
             return { text, selected: isSelected };
         });
 
-        results.push({ number, question: questionText, choices });
+        // Determine if the question was answered correctly
+        const isCorrect = group.querySelector('[data-testid="icon-correct"]') !== null;
+
+        results.push({ number, question: questionText, choices, correct: isCorrect });
     });
 
     return results;
@@ -123,7 +126,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         if (button) {
             button.click();
             // Wait for the page to load feedback, then scrape (using delay from message)
-            const delay = msg.delay || 2000; // Default to 2 seconds if not specified
+            const delay = msg.delay || 4000; // Default to 4 seconds if not specified
             setTimeout(() => {
                 const data = scrapeCoursera();
                 sendResponse({ success: true, data });
