@@ -256,6 +256,7 @@ const UI_TEXT = {
         logStarting: "Starting auto-scrape process...",
         logGettingFirstContent: "Getting first course content...",
         logNavigatingToContent: "Navigating to first content page...",
+        logAlreadyOnModulePage: "Already on module page, skipping navigation...",
         logExtractingAssignments: "Extracting assignments and quizzes...",
         logFoundAssignments: (count) => `Found ${count} assignment(s)/quiz(zes)`,
         logProcessingAssignment: (current, total, title) => `Processing ${current}/${total}: ${title}`,
@@ -313,6 +314,7 @@ const UI_TEXT = {
         logStarting: "Bắt đầu quá trình tự động quét...",
         logGettingFirstContent: "Lấy nội dung khóa học đầu tiên...",
         logNavigatingToContent: "Điều hướng đến trang nội dung đầu tiên...",
+        logAlreadyOnModulePage: "Đã ở trang mô-đun, bỏ qua điều hướng...",
         logExtractingAssignments: "Trích xuất bài tập và bài kiểm tra...",
         logFoundAssignments: (count) => `Tìm thấy ${count} bài tập/bài kiểm tra`,
         logProcessingAssignment: (current, total, title) => `Xử lý ${current}/${total}: ${title}`,
@@ -633,23 +635,21 @@ async function performAutoScrape() {
         
         addLogEntry(t.logGettingFirstContent, "info");
         
-        // Step 1: Get first course content
+        // Step 1: Try to get first course content (if on welcome page)
         let response = await sendMessageToTab(tabId, { action: "getFirstCourseContent" });
         
-        if (!response || !response.data || !response.data.url) {
-            addLogEntry(t.alertNotOnCoursePage, "error");
-            alert(t.alertNotOnCoursePage);
-            return;
+        // If we got valid content, navigate to it
+        if (response && response.data && response.data.url) {
+            addLogEntry(t.logNavigatingToContent, "info");
+            await navigateToURL(tabId, response.data.url);
+        } else {
+            // No first content found, assume we're already on a module page
+            addLogEntry(t.logAlreadyOnModulePage, "info");
         }
-        
-        addLogEntry(t.logNavigatingToContent, "info");
-        
-        // Step 2: Navigate to the first content page (where modules are listed)
-        await navigateToURL(tabId, response.data.url);
         
         addLogEntry(t.logExtractingAssignments, "info");
         
-        // Step 3: Extract assignments
+        // Step 2: Extract assignments from current page
         response = await sendMessageToTab(tabId, { action: "extractAssignments" });
         
         if (!response || !response.data || response.data.length === 0) {
