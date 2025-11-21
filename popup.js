@@ -240,7 +240,12 @@ const UI_TEXT = {
         infoVersion: "Version:",
         infoAuthor: "Author:",
         infoGitHub: "GitHub:",
-        infoHelp: "Help:"
+        infoHelp: "Help:",
+        alertTabError: "Error: Could not access current tab",
+        alertNotOnCoursePage: "Are you on the course welcome page?\n\nPlease navigate to the course main page where you can see all modules and lessons.",
+        alertNoAssignments: "No assignments or quizzes could be found on this page.\n\nPlease make sure you're on a page that shows the course modules.",
+        alertAutoScrapeComplete: (total, count) => `Auto-scrape completed!\n\nTotal questions scraped: ${total}\nAssignments processed: ${count}`,
+        alertAutoScrapeError: (error) => `An error occurred during auto-scrape:\n\n${error}`
     },
     VI: {
         title: "Coursera QuizEX",
@@ -273,7 +278,12 @@ const UI_TEXT = {
         infoVersion: "Phiên bản:",
         infoAuthor: "Tác giả:",
         infoGitHub: "GitHub:",
-        infoHelp: "Trợ giúp:"
+        infoHelp: "Trợ giúp:",
+        alertTabError: "Lỗi: Không thể truy cập tab hiện tại",
+        alertNotOnCoursePage: "Bạn có đang ở trang chào mừng khóa học không?\n\nVui lòng điều hướng đến trang chính của khóa học nơi bạn có thể thấy tất cả các mô-đun và bài học.",
+        alertNoAssignments: "Không tìm thấy bài tập hoặc bài kiểm tra nào trên trang này.\n\nVui lòng đảm bảo bạn đang ở trang hiển thị các mô-đun khóa học.",
+        alertAutoScrapeComplete: (total, count) => `Tự động quét hoàn tất!\n\nTổng số câu hỏi đã quét: ${total}\nBài tập đã xử lý: ${count}`,
+        alertAutoScrapeError: (error) => `Đã xảy ra lỗi trong quá trình tự động quét:\n\n${error}`
     }
 };
 
@@ -493,11 +503,13 @@ function navigateToURL(tabId, url) {
 
 // Main auto-scrape function
 async function performAutoScrape() {
+    const t = UI_TEXT[currentLang];
+    
     try {
         // Get current tab
         const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
         if (!tabs || !tabs[0]) {
-            alert("Error: Could not access current tab");
+            alert(t.alertTabError);
             return;
         }
         const tabId = tabs[0].id;
@@ -508,7 +520,7 @@ async function performAutoScrape() {
         let response = await sendMessageToTab(tabId, { action: "getFirstCourseContent" });
         
         if (!response || !response.data || !response.data.url) {
-            alert("Are you on the course welcome page?\n\nPlease navigate to the course main page where you can see all modules and lessons.");
+            alert(t.alertNotOnCoursePage);
             return;
         }
         
@@ -523,7 +535,7 @@ async function performAutoScrape() {
         response = await sendMessageToTab(tabId, { action: "extractAssignments" });
         
         if (!response || !response.data || response.data.length === 0) {
-            alert("No assignments or quizzes could be found on this page.\n\nPlease make sure you're on a page that shows the course modules.");
+            alert(t.alertNoAssignments);
             return;
         }
         
@@ -576,11 +588,11 @@ async function performAutoScrape() {
             updatePreviewDisplay(data);
         });
         
-        alert(`Auto-scrape completed!\n\nTotal questions scraped: ${totalScraped}\nAssignments processed: ${assignments.length}`);
+        alert(t.alertAutoScrapeComplete(totalScraped, assignments.length));
         
     } catch (error) {
         console.error("Auto-scrape error:", error);
-        alert(`An error occurred during auto-scrape:\n\n${error.message || error}`);
+        alert(t.alertAutoScrapeError(error.message || error));
     }
 }
 
