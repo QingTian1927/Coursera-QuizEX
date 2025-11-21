@@ -223,6 +223,7 @@ const UI_TEXT = {
         title: "Coursera QuizEX",
         scrape: "Scrape Page",
         autoScrape: "Auto-Scrape",
+        cancelAutoScrape: "Cancel",
         clear: "Clear Data",
         noData: "No data yet…",
         preview: "Preview",
@@ -256,6 +257,7 @@ const UI_TEXT = {
         alertNoAssignments: "No assignments or quizzes could be found on this page.\n\nPlease make sure you're on a page that shows the course modules.",
         alertConnectionError: "Could not connect to the page.\n\nPlease refresh the page and try again.",
         alertAutoScrapeComplete: (total, count) => `Auto-scrape completed!\n\nTotal questions scraped: ${total}\nAssignments processed: ${count}`,
+        alertAutoScrapeCancelled: "Auto-scrape has been cancelled.",
         alertAutoScrapeError: (error) => `An error occurred during auto-scrape:\n\n${error}`,
         logPanelTitle: "Auto-Scrape Log",
         logStarting: "Starting auto-scrape process...",
@@ -282,6 +284,7 @@ const UI_TEXT = {
         title: "Coursera QuizEX",
         scrape: "Quét trang",
         autoScrape: "Tự động quét",
+        cancelAutoScrape: "Hủy",
         clear: "Xóa dữ liệu",
         noData: "Chưa có dữ liệu…",
         preview: "Xem trước",
@@ -315,6 +318,7 @@ const UI_TEXT = {
         alertNoAssignments: "Không tìm thấy bài tập hoặc bài kiểm tra nào trên trang này.\n\nVui lòng đảm bảo bạn đang ở trang hiển thị các mô-đun khóa học.",
         alertConnectionError: "Không thể kết nối với trang.\n\nVui lòng làm mới trang và thử lại.",
         alertAutoScrapeComplete: (total, count) => `Tự động quét hoàn tất!\n\nTổng số câu hỏi đã quét: ${total}\nBài tập đã xử lý: ${count}`,
+        alertAutoScrapeCancelled: "Tự động quét đã bị hủy.",
         alertAutoScrapeError: (error) => `Đã xảy ra lỗi trong quá trình tự động quét:\n\n${error}`,
         logPanelTitle: "Nhật ký tự động quét",
         logStarting: "Bắt đầu quá trình tự động quét...",
@@ -591,6 +595,9 @@ document.getElementById("scrapeBtn").addEventListener("click", () => {
 
 /* ---------------- AUTO-SCRAPE BUTTON ---------------- */
 
+// Status polling interval
+let statusPollInterval = null;
+
 // Helper function to send messages to content script
 function sendMessageToTab(tabId, message) {
     return new Promise((resolve, reject) => {
@@ -620,139 +627,170 @@ function navigateToURL(tabId, url) {
     });
 }
 
-// Main auto-scrape function
-async function performAutoScrape() {
-    const t = UI_TEXT[currentLang];
-    
-    // Show log panel and clear previous logs
-    clearLog();
-    showLogPanel();
-    addLogEntry(t.logStarting, "info");
-    
-    try {
-        // Get current tab
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (!tabs || !tabs[0]) {
-            addLogEntry(t.alertTabError, "error");
-            alert(t.alertTabError);
-            return;
-        }
-        const tabId = tabs[0].id;
+// Poll auto-scrape status from background
+function pollAutoScrapeStatus() {
+    chrome.runtime.sendMessage({ action: 'getAutoScrapeStatus' }, (response) => {
+        if (chrome.runtime.lastError || !response) return;
         
-        addLogEntry(t.logGettingFirstContent, "info");
+        const t = UI_TEXT[currentLang];
         
-        // Step 1: Try to get first course content (if on welcome page)
-        let response = await sendMessageToTab(tabId, { action: "getFirstCourseContent" });
-        
-        // If we got valid content, navigate to it
-        if (response && response.data && response.data.url) {
-            addLogEntry(t.logNavigatingToContent, "info");
-            await navigateToURL(tabId, response.data.url);
-        } else {
-            // No first content found, assume we're already on a module page
-            addLogEntry(t.logAlreadyOnModulePage, "info");
-        }
-        
-        addLogEntry(t.logExtractingAssignments, "info");
-        
-        // Step 2: Extract assignments from current page
-        response = await sendMessageToTab(tabId, { action: "extractAssignments" });
-        
-        if (!response || !response.data || response.data.length === 0) {
-            addLogEntry(t.alertNoAssignments, "error");
-            alert(t.alertNoAssignments);
-            return;
-        }
-        
-        const assignments = response.data;
-        addLogEntry(t.logFoundAssignments(assignments.length), "success");
-        
-        let totalScraped = 0;
-        
-        // Step 4-8: Process each assignment sequentially
-        for (let i = 0; i < assignments.length; i++) {
-            const assignment = assignments[i];
-            addLogEntry(t.logProcessingAssignment(i + 1, assignments.length, assignment.title), "info");
-            
-            // Navigate to assignment page
-            addLogEntry(t.logNavigatingToAssignment, "info");
-            await navigateToURL(tabId, assignment.url);
-            
-            // Step 5: Check for feedback button
-            addLogEntry(t.logCheckingFeedback, "info");
-            response = await sendMessageToTab(tabId, { action: "getViewFeedbackButton" });
-            
-            if (!response || !response.hasButton) {
-                addLogEntry(t.logNoFeedbackButton, "warning");
-                continue; // Skip to next assignment
-            }
-            
-            // Step 6: Click feedback button and scrape
-            addLogEntry(t.logClickingFeedback, "info");
-            addLogEntry(t.logScrapingQuestions, "info");
-            response = await sendMessageToTab(tabId, { 
-                action: "clickViewFeedbackButton",
-                delay: formatSettings.feedbackDelay
+        // Update log panel with new logs
+        if (response.logs && response.logs.length > 0) {
+            clearLog();
+            response.logs.forEach(log => {
+                addLogEntry(log.message, log.type);
             });
-            
-            if (response && response.success && response.data && response.data.length > 0) {
-                addLogEntry(t.logScrapedQuestions(response.data.length), "success");
-                
-                // Save the data
-                addLogEntry(t.logSavingData, "info");
-                await new Promise((resolve) => {
-                    appendScrapedDataToStorage(response.data, (success) => {
-                        if (success) {
-                            totalScraped += response.data.length;
-                            // Update preview immediately after each successful scrape
-                            loadScrapedDataFromStorage(data => {
-                                updatePreviewDisplay(data);
-                            });
-                        }
-                        resolve();
-                    });
-                });
-            } else {
-                addLogEntry(t.logNoQuestionsFound, "warning");
-            }
         }
         
-        // Update preview with all collected data
+        // Update preview if data has changed
         loadScrapedDataFromStorage(data => {
             updatePreviewDisplay(data);
         });
         
-        addLogEntry(t.logCompleted(totalScraped, assignments.length), "success");
-        alert(t.alertAutoScrapeComplete(totalScraped, assignments.length));
-        
-    } catch (error) {
-        console.error("Auto-scrape error:", error);
-        addLogEntry(t.logError(error.message || error), "error");
-        
-        // Check if it's a connection error
-        if (error.message && error.message.includes("Could not establish connection")) {
-            alert(t.alertConnectionError);
-        } else {
-            alert(t.alertAutoScrapeError(error.message || error));
+        // Check if auto-scrape completed
+        if (!response.isRunning) {
+            stopStatusPolling();
+            
+            const btn = document.getElementById("autoScrapeBtn");
+            const btnText = btn.querySelector("#autoScrapeBtnText");
+            const btnIcon = btn.querySelector(".btn-icon");
+            
+            btn.disabled = false;
+            btn.style.opacity = "1";
+            btn.classList.remove("btn-cancel-state"); // Remove cancel state class
+            btnText.innerText = t.autoScrape;
+            
+            // Reset icon to play icon
+            if (btnIcon) {
+                btnIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
+                </svg>`;
+            }
+            
+            // Show error alert if there was an error
+            if (response.error) {
+                if (response.error.includes("Could not establish connection") || 
+                    response.error.includes("Receiving end does not exist")) {
+                    alert(t.alertConnectionError);
+                } else {
+                    alert(t.alertAutoScrapeError(response.error));
+                }
+            }
         }
+    });
+}
+
+function startStatusPolling() {
+    if (statusPollInterval) return;
+    
+    // Show log panel
+    showLogPanel();
+    
+    // Poll every 500ms for updates
+    statusPollInterval = setInterval(pollAutoScrapeStatus, 500);
+    
+    // Do an immediate poll
+    pollAutoScrapeStatus();
+}
+
+function stopStatusPolling() {
+    if (statusPollInterval) {
+        clearInterval(statusPollInterval);
+        statusPollInterval = null;
     }
 }
 
 document.getElementById("autoScrapeBtn").addEventListener("click", () => {
-    // Disable button during scraping to prevent multiple clicks
+    const t = UI_TEXT[currentLang];
     const btn = document.getElementById("autoScrapeBtn");
-    const originalText = btn.querySelector("#autoScrapeBtnText").innerText;
+    const btnText = btn.querySelector("#autoScrapeBtnText");
+    const btnIcon = btn.querySelector(".btn-icon");
     
-    btn.disabled = true;
-    btn.style.opacity = "0.6";
-    btn.querySelector("#autoScrapeBtnText").innerText = "Scraping...";
-    
-    performAutoScrape().finally(() => {
-        // Re-enable button
+    // Check if currently running - if so, cancel it
+    chrome.runtime.sendMessage({ action: 'getAutoScrapeStatus' }, (statusResponse) => {
+        if (statusResponse && statusResponse.isRunning) {
+            // Cancel the running auto-scrape
+            chrome.runtime.sendMessage({ action: 'stopAutoScrape' }, (response) => {
+                if (response && response.success) {
+                    // Don't stop polling immediately - let it continue to capture the cancellation log
+                    // The polling will stop automatically when isRunning becomes false
+                }
+            });
+            return;
+        }
+        
+        // Start new auto-scrape
+        // Clear logs
+        clearLog();
+        
+        // Change button to cancel state
+        btn.disabled = false;  // Keep enabled so user can click to cancel
+        btn.style.opacity = "1";
+        btn.classList.add("btn-cancel-state"); // Add cancel state class for red color
+        btnText.innerText = t.cancelAutoScrape;
+        
+        // Change icon to stop icon
+        if (btnIcon) {
+            btnIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-stop-fill" viewBox="0 0 16 16">
+                <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5"/>
+            </svg>`;
+        }
+        
+        // Start auto-scrape in background
+        chrome.runtime.sendMessage({ 
+            action: 'startAutoScrape',
+            settings: {
+                navigationDelay: formatSettings.navigationDelay,
+                feedbackDelay: formatSettings.feedbackDelay,
+                language: currentLang  // Pass current language to background
+            }
+        }, (response) => {
+            if (chrome.runtime.lastError || !response || !response.success) {
+                btn.disabled = false;
+                btn.style.opacity = "1";
+                btn.classList.remove("btn-cancel-state"); // Remove cancel state class
+                btnText.innerText = t.autoScrape;
+                
+                // Reset icon to play icon
+                if (btnIcon) {
+                    btnIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
+                    </svg>`;
+                }
+                
+                const error = response?.error || chrome.runtime.lastError?.message || 'Unknown error';
+                alert(t.alertAutoScrapeError(error));
+                return;
+            }
+            
+            // Start polling for status updates
+            startStatusPolling();
+        });
+    });
+});
+
+// Poll status when popup opens if auto-scrape is running
+chrome.runtime.sendMessage({ action: 'getAutoScrapeStatus' }, (response) => {
+    if (response && response.isRunning) {
+        const t = UI_TEXT[currentLang];
+        const btn = document.getElementById("autoScrapeBtn");
+        const btnText = btn.querySelector("#autoScrapeBtnText");
+        const btnIcon = btn.querySelector(".btn-icon");
+        
         btn.disabled = false;
         btn.style.opacity = "1";
-        btn.querySelector("#autoScrapeBtnText").innerText = originalText;
-    });
+        btn.classList.add("btn-cancel-state"); // Add cancel state class for red color
+        btnText.innerText = t.cancelAutoScrape;
+        
+        // Change icon to stop icon
+        if (btnIcon) {
+            btnIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-stop-fill" viewBox="0 0 16 16">
+                <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5"/>
+            </svg>`;
+        }
+        
+        startStatusPolling();
+    }
 });
 
 
