@@ -40,10 +40,12 @@
         margin: 0;
         padding: 0;
         width: 340px;
-        min-height: 100vh;
+        max-height: 600px;
         background: var(--bg);
         color: var(--fg);
         transition: background 0.2s, color 0.2s;
+        display: flex;
+        flex-direction: column;
     }
 
     /* Header */
@@ -163,6 +165,8 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
+        overflow-y: auto;
+        flex: 1;
     }
 
     /* Button Grid - Updated for 3 buttons */
@@ -428,6 +432,7 @@
     .info-panel.active {
         max-height: 500px;
         margin-top: 0;
+        overflow: visible;
     }
 
     .info-content {
