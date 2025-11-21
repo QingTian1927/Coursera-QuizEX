@@ -1,13 +1,17 @@
 /* ---------------- DEFAULT FORMAT SETTINGS ---------------- */
 
+// Default delay constants (in milliseconds)
+const DEFAULT_NAVIGATION_DELAY = 4000;
+const DEFAULT_FEEDBACK_DELAY = 4000;
+
 let formatSettings = {
     questionSeparator: "\n\n",
     choiceSeparator: "\n",
     answerPrefix: "/",
     answerSuffix: ";",
     defaultFormat: "normal",
-    navigationDelay: 4000,  // Default navigation delay in ms
-    feedbackDelay: 3000     // Default feedback button delay in ms
+    navigationDelay: DEFAULT_NAVIGATION_DELAY,
+    feedbackDelay: DEFAULT_FEEDBACK_DELAY
 };
 
 // Load saved format settings (persisted via chrome.storage.sync)
@@ -15,8 +19,8 @@ chrome.storage.sync.get(["formatSettings"], res => {
     if (res.formatSettings) {
         formatSettings = res.formatSettings;
         // Ensure delay settings exist (for backward compatibility)
-        if (!formatSettings.navigationDelay) formatSettings.navigationDelay = 1500;
-        if (!formatSettings.feedbackDelay) formatSettings.feedbackDelay = 2000;
+        if (!formatSettings.navigationDelay) formatSettings.navigationDelay = DEFAULT_NAVIGATION_DELAY;
+        if (!formatSettings.feedbackDelay) formatSettings.feedbackDelay = DEFAULT_FEEDBACK_DELAY;
         updateSettingsInputs();
     }
 });
@@ -33,8 +37,8 @@ function updateSettingsInputs() {
     document.getElementById("inputAnswer").value = escapeForDisplay(formatSettings.answerPrefix);
     document.getElementById("inputSuffix").value = escapeForDisplay(formatSettings.answerSuffix);
     document.getElementById("defaultFormatSelect").value = formatSettings.defaultFormat || "normal";
-    document.getElementById("inputNavigationDelay").value = formatSettings.navigationDelay || 1500;
-    document.getElementById("inputFeedbackDelay").value = formatSettings.feedbackDelay || 2000;
+    document.getElementById("inputNavigationDelay").value = formatSettings.navigationDelay || DEFAULT_NAVIGATION_DELAY;
+    document.getElementById("inputFeedbackDelay").value = formatSettings.feedbackDelay || DEFAULT_FEEDBACK_DELAY;
 }
 
 function escapeForDisplay(str) {
@@ -250,6 +254,7 @@ const UI_TEXT = {
         alertTabError: "Error: Could not access current tab",
         alertNotOnCoursePage: "Are you on the course welcome page?\n\nPlease navigate to the course main page where you can see all modules and lessons.",
         alertNoAssignments: "No assignments or quizzes could be found on this page.\n\nPlease make sure you're on a page that shows the course modules.",
+        alertConnectionError: "Could not connect to the page.\n\nPlease refresh the page and try again.",
         alertAutoScrapeComplete: (total, count) => `Auto-scrape completed!\n\nTotal questions scraped: ${total}\nAssignments processed: ${count}`,
         alertAutoScrapeError: (error) => `An error occurred during auto-scrape:\n\n${error}`,
         logPanelTitle: "Auto-Scrape Log",
@@ -308,6 +313,7 @@ const UI_TEXT = {
         alertTabError: "Lỗi: Không thể truy cập tab hiện tại",
         alertNotOnCoursePage: "Bạn có đang ở trang chào mừng khóa học không?\n\nVui lòng điều hướng đến trang chính của khóa học nơi bạn có thể thấy tất cả các mô-đun và bài học.",
         alertNoAssignments: "Không tìm thấy bài tập hoặc bài kiểm tra nào trên trang này.\n\nVui lòng đảm bảo bạn đang ở trang hiển thị các mô-đun khóa học.",
+        alertConnectionError: "Không thể kết nối với trang.\n\nVui lòng làm mới trang và thử lại.",
         alertAutoScrapeComplete: (total, count) => `Tự động quét hoàn tất!\n\nTổng số câu hỏi đã quét: ${total}\nBài tập đã xử lý: ${count}`,
         alertAutoScrapeError: (error) => `Đã xảy ra lỗi trong quá trình tự động quét:\n\n${error}`,
         logPanelTitle: "Nhật ký tự động quét",
@@ -524,8 +530,8 @@ saveSettings.addEventListener("click", () => {
         answerPrefix: unescapeFromInput(document.getElementById("inputAnswer").value),
         answerSuffix: unescapeFromInput(document.getElementById("inputSuffix").value),
         defaultFormat: document.getElementById("defaultFormatSelect").value,
-        navigationDelay: parseInt(document.getElementById("inputNavigationDelay").value) || 1500,
-        feedbackDelay: parseInt(document.getElementById("inputFeedbackDelay").value) || 2000
+        navigationDelay: parseInt(document.getElementById("inputNavigationDelay").value) || DEFAULT_NAVIGATION_DELAY,
+        feedbackDelay: parseInt(document.getElementById("inputFeedbackDelay").value) || DEFAULT_FEEDBACK_DELAY
     };
     chrome.storage.sync.set({ formatSettings });
     
@@ -698,6 +704,10 @@ async function performAutoScrape() {
                     appendScrapedDataToStorage(response.data, (success) => {
                         if (success) {
                             totalScraped += response.data.length;
+                            // Update preview immediately after each successful scrape
+                            loadScrapedDataFromStorage(data => {
+                                updatePreviewDisplay(data);
+                            });
                         }
                         resolve();
                     });
@@ -718,7 +728,13 @@ async function performAutoScrape() {
     } catch (error) {
         console.error("Auto-scrape error:", error);
         addLogEntry(t.logError(error.message || error), "error");
-        alert(t.alertAutoScrapeError(error.message || error));
+        
+        // Check if it's a connection error
+        if (error.message && error.message.includes("Could not establish connection")) {
+            alert(t.alertConnectionError);
+        } else {
+            alert(t.alertAutoScrapeError(error.message || error));
+        }
     }
 }
 
