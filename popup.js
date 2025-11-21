@@ -245,7 +245,24 @@ const UI_TEXT = {
         alertNotOnCoursePage: "Are you on the course welcome page?\n\nPlease navigate to the course main page where you can see all modules and lessons.",
         alertNoAssignments: "No assignments or quizzes could be found on this page.\n\nPlease make sure you're on a page that shows the course modules.",
         alertAutoScrapeComplete: (total, count) => `Auto-scrape completed!\n\nTotal questions scraped: ${total}\nAssignments processed: ${count}`,
-        alertAutoScrapeError: (error) => `An error occurred during auto-scrape:\n\n${error}`
+        alertAutoScrapeError: (error) => `An error occurred during auto-scrape:\n\n${error}`,
+        logPanelTitle: "Auto-Scrape Log",
+        logStarting: "Starting auto-scrape process...",
+        logGettingFirstContent: "Getting first course content...",
+        logNavigatingToContent: "Navigating to first content page...",
+        logExtractingAssignments: "Extracting assignments and quizzes...",
+        logFoundAssignments: (count) => `Found ${count} assignment(s)/quiz(zes)`,
+        logProcessingAssignment: (current, total, title) => `Processing ${current}/${total}: ${title}`,
+        logNavigatingToAssignment: "Navigating to assignment page...",
+        logCheckingFeedback: "Checking for feedback button...",
+        logNoFeedbackButton: "No feedback button found, skipping...",
+        logClickingFeedback: "Clicking feedback button...",
+        logScrapingQuestions: "Scraping questions...",
+        logScrapedQuestions: (count) => `Scraped ${count} question(s)`,
+        logNoQuestionsFound: "No questions found",
+        logSavingData: "Saving data...",
+        logCompleted: (total, count) => `Completed! Total questions: ${total}, Assignments processed: ${count}`,
+        logError: (error) => `Error: ${error}`
     },
     VI: {
         title: "Coursera QuizEX",
@@ -283,7 +300,24 @@ const UI_TEXT = {
         alertNotOnCoursePage: "Bạn có đang ở trang chào mừng khóa học không?\n\nVui lòng điều hướng đến trang chính của khóa học nơi bạn có thể thấy tất cả các mô-đun và bài học.",
         alertNoAssignments: "Không tìm thấy bài tập hoặc bài kiểm tra nào trên trang này.\n\nVui lòng đảm bảo bạn đang ở trang hiển thị các mô-đun khóa học.",
         alertAutoScrapeComplete: (total, count) => `Tự động quét hoàn tất!\n\nTổng số câu hỏi đã quét: ${total}\nBài tập đã xử lý: ${count}`,
-        alertAutoScrapeError: (error) => `Đã xảy ra lỗi trong quá trình tự động quét:\n\n${error}`
+        alertAutoScrapeError: (error) => `Đã xảy ra lỗi trong quá trình tự động quét:\n\n${error}`,
+        logPanelTitle: "Nhật ký tự động quét",
+        logStarting: "Bắt đầu quá trình tự động quét...",
+        logGettingFirstContent: "Lấy nội dung khóa học đầu tiên...",
+        logNavigatingToContent: "Điều hướng đến trang nội dung đầu tiên...",
+        logExtractingAssignments: "Trích xuất bài tập và bài kiểm tra...",
+        logFoundAssignments: (count) => `Tìm thấy ${count} bài tập/bài kiểm tra`,
+        logProcessingAssignment: (current, total, title) => `Xử lý ${current}/${total}: ${title}`,
+        logNavigatingToAssignment: "Điều hướng đến trang bài tập...",
+        logCheckingFeedback: "Kiểm tra nút phản hồi...",
+        logNoFeedbackButton: "Không tìm thấy nút phản hồi, bỏ qua...",
+        logClickingFeedback: "Nhấn nút phản hồi...",
+        logScrapingQuestions: "Quét câu hỏi...",
+        logScrapedQuestions: (count) => `Đã quét ${count} câu hỏi`,
+        logNoQuestionsFound: "Không tìm thấy câu hỏi",
+        logSavingData: "Lưu dữ liệu...",
+        logCompleted: (total, count) => `Hoàn tất! Tổng số câu hỏi: ${total}, Bài tập đã xử lý: ${count}`,
+        logError: (error) => `Lỗi: ${error}`
     }
 };
 
@@ -321,6 +355,9 @@ function applyLanguage() {
     
     // Update format selector options
     updateFormatOptions();
+    
+    // Update log panel title
+    updateLogPanelTitle();
 }
 
 function updateFormatOptions() {
@@ -334,6 +371,70 @@ function updateFormatOptions() {
             if (text) option.text = text;
         });
     });
+}
+
+
+/* ---------------- LOG PANEL MANAGEMENT ---------------- */
+
+const logToggleBtn = document.getElementById("logToggleBtn");
+const logPanelOverlay = document.getElementById("logPanelOverlay");
+const logPanel = document.getElementById("logPanel");
+const logPanelClose = document.getElementById("logPanelClose");
+const logPanelBody = document.getElementById("logPanelBody");
+const buttonRow = document.querySelector(".button-row");
+
+function showLogPanel() {
+    logToggleBtn.classList.add("active");
+    buttonRow.classList.remove("log-hidden");
+}
+
+function hideLogPanel() {
+    logToggleBtn.classList.remove("active");
+    logPanel.classList.remove("active");
+    logPanelOverlay.classList.remove("active");
+    buttonRow.classList.add("log-hidden");
+}
+
+function toggleLogPanel() {
+    logPanel.classList.toggle("active");
+    logPanelOverlay.classList.toggle("active");
+}
+
+function clearLog() {
+    logPanelBody.innerHTML = "";
+}
+
+function addLogEntry(message, type = "info") {
+    const entry = document.createElement("div");
+    entry.className = "log-entry";
+    
+    const timestamp = document.createElement("span");
+    timestamp.className = "log-timestamp";
+    const now = new Date();
+    timestamp.textContent = `[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}]`;
+    
+    const msgElement = document.createElement("span");
+    msgElement.className = `log-message ${type}`;
+    msgElement.textContent = message;
+    
+    entry.appendChild(timestamp);
+    entry.appendChild(msgElement);
+    logPanelBody.appendChild(entry);
+    
+    // Auto-scroll to bottom
+    logPanelBody.scrollTop = logPanelBody.scrollHeight;
+}
+
+logToggleBtn.addEventListener("click", toggleLogPanel);
+logPanelClose.addEventListener("click", toggleLogPanel);
+logPanelOverlay.addEventListener("click", toggleLogPanel);
+
+// Update log panel title when language changes
+function updateLogPanelTitle() {
+    const titleElement = document.getElementById("logPanelTitleText");
+    if (titleElement) {
+        titleElement.textContent = UI_TEXT[currentLang].logPanelTitle;
+    }
 }
 
 
@@ -505,71 +606,84 @@ function navigateToURL(tabId, url) {
 async function performAutoScrape() {
     const t = UI_TEXT[currentLang];
     
+    // Show log panel and clear previous logs
+    clearLog();
+    showLogPanel();
+    addLogEntry(t.logStarting, "info");
+    
     try {
         // Get current tab
         const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
         if (!tabs || !tabs[0]) {
+            addLogEntry(t.alertTabError, "error");
             alert(t.alertTabError);
             return;
         }
         const tabId = tabs[0].id;
         
-        console.log("Step 1: Getting first course content...");
+        addLogEntry(t.logGettingFirstContent, "info");
         
         // Step 1: Get first course content
         let response = await sendMessageToTab(tabId, { action: "getFirstCourseContent" });
         
         if (!response || !response.data || !response.data.url) {
+            addLogEntry(t.alertNotOnCoursePage, "error");
             alert(t.alertNotOnCoursePage);
             return;
         }
         
-        console.log("Step 2: Navigating to first content page...");
+        addLogEntry(t.logNavigatingToContent, "info");
         
         // Step 2: Navigate to the first content page (where modules are listed)
         await navigateToURL(tabId, response.data.url);
         
-        console.log("Step 3: Extracting assignments...");
+        addLogEntry(t.logExtractingAssignments, "info");
         
         // Step 3: Extract assignments
         response = await sendMessageToTab(tabId, { action: "extractAssignments" });
         
         if (!response || !response.data || response.data.length === 0) {
+            addLogEntry(t.alertNoAssignments, "error");
             alert(t.alertNoAssignments);
             return;
         }
         
         const assignments = response.data;
-        console.log(`Found ${assignments.length} assignments/quizzes`);
+        addLogEntry(t.logFoundAssignments(assignments.length), "success");
         
         let totalScraped = 0;
         
         // Step 4-8: Process each assignment sequentially
         for (let i = 0; i < assignments.length; i++) {
             const assignment = assignments[i];
-            console.log(`Processing ${i + 1}/${assignments.length}: ${assignment.title}`);
+            addLogEntry(t.logProcessingAssignment(i + 1, assignments.length, assignment.title), "info");
             
             // Navigate to assignment page
+            addLogEntry(t.logNavigatingToAssignment, "info");
             await navigateToURL(tabId, assignment.url);
             
             // Step 5: Check for feedback button
+            addLogEntry(t.logCheckingFeedback, "info");
             response = await sendMessageToTab(tabId, { action: "getViewFeedbackButton" });
             
             if (!response || !response.hasButton) {
-                console.log(`No feedback button found for: ${assignment.title}`);
+                addLogEntry(t.logNoFeedbackButton, "warning");
                 continue; // Skip to next assignment
             }
             
             // Step 6: Click feedback button and scrape
+            addLogEntry(t.logClickingFeedback, "info");
+            addLogEntry(t.logScrapingQuestions, "info");
             response = await sendMessageToTab(tabId, { 
                 action: "clickViewFeedbackButton",
                 delay: formatSettings.feedbackDelay
             });
             
             if (response && response.success && response.data && response.data.length > 0) {
-                console.log(`Scraped ${response.data.length} questions from: ${assignment.title}`);
+                addLogEntry(t.logScrapedQuestions(response.data.length), "success");
                 
                 // Save the data
+                addLogEntry(t.logSavingData, "info");
                 await new Promise((resolve) => {
                     appendScrapedDataToStorage(response.data, (success) => {
                         if (success) {
@@ -579,7 +693,7 @@ async function performAutoScrape() {
                     });
                 });
             } else {
-                console.log(`No data found for: ${assignment.title}`);
+                addLogEntry(t.logNoQuestionsFound, "warning");
             }
         }
         
@@ -588,10 +702,12 @@ async function performAutoScrape() {
             updatePreviewDisplay(data);
         });
         
+        addLogEntry(t.logCompleted(totalScraped, assignments.length), "success");
         alert(t.alertAutoScrapeComplete(totalScraped, assignments.length));
         
     } catch (error) {
         console.error("Auto-scrape error:", error);
+        addLogEntry(t.logError(error.message || error), "error");
         alert(t.alertAutoScrapeError(error.message || error));
     }
 }
