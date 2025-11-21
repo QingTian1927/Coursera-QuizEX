@@ -6,8 +6,8 @@ let formatSettings = {
     answerPrefix: "/",
     answerSuffix: ";",
     defaultFormat: "normal",
-    navigationDelay: 1500,  // Default navigation delay in ms
-    feedbackDelay: 2000     // Default feedback button delay in ms
+    navigationDelay: 4000,  // Default navigation delay in ms
+    feedbackDelay: 3000     // Default feedback button delay in ms
 };
 
 // Load saved format settings (persisted via chrome.storage.sync)
