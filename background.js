@@ -1,5 +1,8 @@
 /* ---------------- BACKGROUND SERVICE WORKER ---------------- */
 
+// Import UI text dictionary
+importScripts('i18n.js');
+
 // Auto-scrape state
 let autoScrapeState = {
     isRunning: false,
@@ -12,52 +15,6 @@ let autoScrapeState = {
 // Default delay constants
 const DEFAULT_NAVIGATION_DELAY = 4000;
 const DEFAULT_FEEDBACK_DELAY = 4000;
-
-// UI Text dictionary for localized log messages
-const UI_TEXT = {
-    EN: {
-        logStarting: "Starting auto-scrape process...",
-        logGettingFirstContent: "Getting first course content...",
-        logNavigatingToContent: "Navigating to first content page...",
-        logAlreadyOnModulePage: "Already on module page, skipping navigation...",
-        logExtractingAssignments: "Extracting assignments and quizzes...",
-        logFoundAssignments: (count) => `Found ${count} assignment(s)/quiz(zes)`,
-        logProcessingAssignment: (current, total, title) => `Processing ${current}/${total}: ${title}`,
-        logNavigatingToAssignment: "Navigating to assignment page...",
-        logCheckingFeedback: "Checking for feedback button...",
-        logNoFeedbackButton: "No feedback button found, skipping...",
-        logClickingFeedback: "Clicking feedback button...",
-        logScrapingQuestions: "Scraping questions...",
-        logScrapedQuestions: (count) => `Scraped ${count} question(s)`,
-        logNoQuestionsFound: "No questions found",
-        logSavingData: "Saving data...",
-        logCompleted: (total, count) => `Completed! Total questions: ${total}, Assignments processed: ${count}`,
-        logError: (error) => `Error: ${error}`,
-        logNoAssignments: "No assignments or quizzes could be found on this page",
-        logStopped: "Auto-scrape cancelled by user"
-    },
-    VI: {
-        logStarting: "Bắt đầu quá trình tự động quét...",
-        logGettingFirstContent: "Lấy nội dung khóa học đầu tiên...",
-        logNavigatingToContent: "Điều hướng đến trang nội dung đầu tiên...",
-        logAlreadyOnModulePage: "Đã ở trang mô-đun, bỏ qua điều hướng...",
-        logExtractingAssignments: "Trích xuất bài tập và bài kiểm tra...",
-        logFoundAssignments: (count) => `Tìm thấy ${count} bài tập/bài kiểm tra`,
-        logProcessingAssignment: (current, total, title) => `Xử lý ${current}/${total}: ${title}`,
-        logNavigatingToAssignment: "Điều hướng đến trang bài tập...",
-        logCheckingFeedback: "Kiểm tra nút phản hồi...",
-        logNoFeedbackButton: "Không tìm thấy nút phản hồi, bỏ qua...",
-        logClickingFeedback: "Nhấn nút phản hồi...",
-        logScrapingQuestions: "Quét câu hỏi...",
-        logScrapedQuestions: (count) => `Đã quét ${count} câu hỏi`,
-        logNoQuestionsFound: "Không tìm thấy câu hỏi",
-        logSavingData: "Lưu dữ liệu...",
-        logCompleted: (total, count) => `Hoàn tất! Tổng số câu hỏi: ${total}, Bài tập đã xử lý: ${count}`,
-        logError: (error) => `Lỗi: ${error}`,
-        logNoAssignments: "Không tìm thấy bài tập hoặc bài kiểm tra nào trên trang này",
-        logStopped: "Tự động quét đã bị hủy bởi người dùng"
-    }
-};
 
 // Clear data when browser starts up
 chrome.runtime.onStartup.addListener(() => {
