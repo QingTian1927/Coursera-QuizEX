@@ -71,7 +71,7 @@ Use this method if you want to **modify the source code** or contribute:
 4. Choose a format (Normal / Formatted / JSON).
 5. View or download the output. 💡
 
-https://github.com/user-attachments/assets/b63f2f9b-59b6-460f-93dc-44a49be08f79
+https://github.com/user-attachments/assets/4882e0ef-a136-40f8-8dc4-7bcab797f3e2
 
 ---
 
