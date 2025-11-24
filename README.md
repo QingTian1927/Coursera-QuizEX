@@ -80,24 +80,23 @@ https://github.com/user-attachments/assets/4882e0ef-a136-40f8-8dc4-7bcab797f3e2
 ### **Normal (Human-Readable)**
 
 ```
-Q1: Which of the following would most improve this literature review?
-
-• Replacing old studies with newer ones
-• Adding more citations from different countries
-• Identifying gaps in current findings and linking them to the proposed research question (x)
-• Including a personal opinion about social media use
+Q1: Which of the following is the most appropriate exploratory research question for this scenario?
+• Is social media harming young people?
+• How do students aged 14–18 describe the influence of social media on their study habits and focus? (x)
+• How can schools stop students from using social media during study time?
+• Why do students use TikTok so much?
 ```
 
 ### **Formatted (Quizlet-Friendly)**
 
 ```
-Which of the following would most improve this literature review?
+Which of the following is the most appropriate exploratory research question for this scenario?
 
-Replacing old studies with newer ones
-Adding more citations from different countries
-Identifying gaps in current findings and linking them to the proposed research question
-Including a personal opinion about social media use
-/Identifying gaps in current findings and linking them to the proposed research question;
+Is social media harming young people?
+How do students aged 14–18 describe the influence of social media on their study habits and focus?
+How can schools stop students from using social media during study time?
+Why do students use TikTok so much?
+/How do students aged 14–18 describe the influence of social media on their study habits and focus?;
 ```
 
 ### **JSON**
@@ -106,25 +105,26 @@ Including a personal opinion about social media use
 [
   {
     "number": "1",
-    "question": "Which of the following would most improve this literature review?",
+    "question": "Which of the following is the most appropriate exploratory research question for this scenario?",
     "choices": [
       {
-        "text": "Replacing old studies with newer ones",
+        "text": "Is social media harming young people?",
         "selected": false
       },
       {
-        "text": "Adding more citations from different countries",
-        "selected": false
-      },
-      {
-        "text": "Identifying gaps in current findings and linking them to the proposed research question",
+        "text": "How do students aged 14–18 describe the influence of social media on their study habits and focus?",
         "selected": true
       },
       {
-        "text": "Including a personal opinion about social media use",
+        "text": "How can schools stop students from using social media during study time?",
+        "selected": false
+      },
+      {
+        "text": "Why do students use TikTok so much?",
         "selected": false
       }
-    ]
+    ],
+    "correct": true
   }
 ]
 ```
