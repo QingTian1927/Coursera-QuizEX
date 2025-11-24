@@ -7,8 +7,8 @@ const DEFAULT_FEEDBACK_DELAY = 4000;
 let formatSettings = {
     questionSeparator: "\n\n",
     choiceSeparator: "\n",
-    answerPrefix: "/",
-    answerSuffix: ";",
+    answerPrefix: "<>",
+    answerSuffix: "{}",
     defaultFormat: "normal",
     navigationDelay: DEFAULT_NAVIGATION_DELAY,
     feedbackDelay: DEFAULT_FEEDBACK_DELAY
