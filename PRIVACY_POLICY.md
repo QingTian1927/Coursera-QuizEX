@@ -12,8 +12,7 @@ Coursera QuizEX is committed to protecting your privacy. This extension **does n
 ## Permissions
 
 - The extension uses the following permissions only to enable its core functionality:  
-  - **activeTab**: To interact with the current Coursera page for quiz extraction.  
-  - **Scripting**: To extract visible questions and answers from supported pages.  
+  - **activeTab**: To interact with the current Coursera page for quiz extraction.
   - **Storage**: To temporarily store quiz content and user preferences before download.  
 - These permissions **do not allow access to any data beyond what you see on the page**.
 
