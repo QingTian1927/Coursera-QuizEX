@@ -50,7 +50,7 @@ You can install Coursera QuizEX in two ways:
 #### **1. Install from the Extension Stores**
 
 * [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/coursera-quizex/olobbfckgbnfndihhhabkecheadlpgjd)
-* Google Chrome Web Store (Coming Soon)
+* [Google Chrome Web Store](https://chrome.google.com/webstore/detail/kaingheedkjpagdkfjjpkfokffmhpkfi)
 
 #### **2. From a GitHub Release**
 
