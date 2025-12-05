@@ -5,7 +5,9 @@
     <img src="https://img.shields.io/badge/Edge_Add--ons-Available-0078D7?logo=microsoft-edge&logoColor=white" alt="Edge Add-ons"/>
   </a>
   
-  <img src="https://img.shields.io/badge/Chrome_Web_Store-Coming_Soon-lightgrey?logo=google-chrome&logoColor=white" alt="Chrome Web Store"/>
+  <a href="https://chrome.google.com/webstore/detail/kaingheedkjpagdkfjjpkfokffmhpkfi" target="_blank">
+    <img src="https://img.shields.io/badge/Chrome_Web_Store-Available-4285F4?logo=google-chrome&logoColor=white" alt="Chrome Web Store"/>
+  </a>
   
   <a href="https://github.com/QingTian1927/Coursera-QuizEX/releases/latest" target="_blank">
     <img src="https://img.shields.io/github/v/release/QingTian1927/Coursera-QuizEX?display_name=tag&sort=semver" alt="Latest Release"/>
