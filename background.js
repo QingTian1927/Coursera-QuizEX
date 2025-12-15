@@ -92,6 +92,9 @@ function navigateToURL(tabId, url, navigationDelay) {
 
 // Main auto-scrape function running in background
 async function performBackgroundAutoScrape(tabId, settings) {
+    // Wait for messages to load
+    await messagesLoaded;
+    
     autoScrapeState.isRunning = true;
     autoScrapeState.logs = [];
     autoScrapeState.progress = { current: 0, total: 0 };
@@ -99,8 +102,9 @@ async function performBackgroundAutoScrape(tabId, settings) {
     
     const navigationDelay = settings.navigationDelay || DEFAULT_NAVIGATION_DELAY;
     const feedbackDelay = settings.feedbackDelay || DEFAULT_FEEDBACK_DELAY;
-    const lang = settings.language || 'VI'; // Default to VI if not specified
-    const t = UI_TEXT[lang];
+    const lang = settings.language || detectBrowserLanguage();
+    UI_TEXT.setLanguage(lang);
+    const t = UI_TEXT;
     
     try {
         addLog(t.logStarting, 'info');

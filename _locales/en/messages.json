@@ -1,0 +1,264 @@
+{
+  "extensionName": {
+    "message": "Coursera QuizEx",
+    "description": "Name of the extension"
+  },
+  "extensionDescription": {
+    "message": "Helps you gather Coursera quiz questions and choices for easier studying.",
+    "description": "Description of the extension"
+  },
+  "actionTitle": {
+    "message": "Coursera QuizEX",
+    "description": "Title for the browser action"
+  },
+  "title": {
+    "message": "Coursera QuizEX"
+  },
+  "scrape": {
+    "message": "Scrape Page"
+  },
+  "autoScrape": {
+    "message": "Auto-Scrape"
+  },
+  "cancelAutoScrape": {
+    "message": "Cancel"
+  },
+  "clear": {
+    "message": "Clear Data"
+  },
+  "noData": {
+    "message": "No data yet…"
+  },
+  "preview": {
+    "message": "Preview"
+  },
+  "download": {
+    "message": "Download"
+  },
+  "format": {
+    "message": "Format:"
+  },
+  "copied": {
+    "message": "Copied!"
+  },
+  "about": {
+    "message": "About"
+  },
+  "modalTitle": {
+    "message": "Settings"
+  },
+  "labelDefaultFormat": {
+    "message": "Default Output Format"
+  },
+  "hintDefaultFormat": {
+    "message": "Format used for preview and download"
+  },
+  "labelSeparator": {
+    "message": "Question Separator"
+  },
+  "hintSeparator": {
+    "message": "Character(s) between question and choices"
+  },
+  "labelChoice": {
+    "message": "Choice Separator"
+  },
+  "hintChoice": {
+    "message": "Character(s) between each choice"
+  },
+  "labelAnswer": {
+    "message": "Answer Prefix"
+  },
+  "hintAnswer": {
+    "message": "Character(s) before the selected answer"
+  },
+  "labelSuffix": {
+    "message": "Answer Suffix"
+  },
+  "hintSuffix": {
+    "message": "Character(s) after the selected answer"
+  },
+  "labelNavigationDelay": {
+    "message": "Navigation Delay (ms)"
+  },
+  "hintNavigationDelay": {
+    "message": "Wait time after page navigation"
+  },
+  "labelFeedbackDelay": {
+    "message": "Feedback Delay (ms)"
+  },
+  "hintFeedbackDelay": {
+    "message": "Wait time after clicking feedback button"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "infoVersion": {
+    "message": "Version:"
+  },
+  "infoAuthor": {
+    "message": "Author:"
+  },
+  "infoGitHub": {
+    "message": "GitHub:"
+  },
+  "infoHelp": {
+    "message": "Help:"
+  },
+  "alertTabError": {
+    "message": "Error: Could not access current tab"
+  },
+  "alertNotOnCoursePage": {
+    "message": "Are you on the course welcome page?\n\nPlease navigate to the course main page where you can see all modules and lessons."
+  },
+  "alertNoAssignments": {
+    "message": "No assignments or quizzes could be found on this page.\n\nPlease make sure you're on a page that shows the course modules."
+  },
+  "alertConnectionError": {
+    "message": "Could not connect to the page.\n\nPlease refresh the page and try again."
+  },
+  "alertAutoScrapeComplete": {
+    "message": "Auto-scrape completed!\n\nTotal questions scraped: $TOTAL$\nAssignments processed: $COUNT$",
+    "placeholders": {
+      "total": {
+        "content": "$1",
+        "example": "50"
+      },
+      "count": {
+        "content": "$2",
+        "example": "5"
+      }
+    }
+  },
+  "alertAutoScrapeCancelled": {
+    "message": "Auto-scrape has been cancelled."
+  },
+  "alertAutoScrapeError": {
+    "message": "An error occurred during auto-scrape:\n\n$ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Network error"
+      }
+    }
+  },
+  "logPanelTitle": {
+    "message": "Auto-Scrape Log"
+  },
+  "logStarting": {
+    "message": "Starting auto-scrape process..."
+  },
+  "logGettingFirstContent": {
+    "message": "Getting first course content..."
+  },
+  "logNavigatingToContent": {
+    "message": "Navigating to first content page..."
+  },
+  "logAlreadyOnModulePage": {
+    "message": "Already on module page, skipping navigation..."
+  },
+  "logExtractingAssignments": {
+    "message": "Extracting assignments and quizzes..."
+  },
+  "logFoundAssignments": {
+    "message": "Found $COUNT$ assignment(s)/quiz(zes)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "logProcessingAssignment": {
+    "message": "Processing $CURRENT$/$TOTAL$: $TITLE$",
+    "placeholders": {
+      "current": {
+        "content": "$1",
+        "example": "1"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      },
+      "title": {
+        "content": "$3",
+        "example": "Week 1 Quiz"
+      }
+    }
+  },
+  "logNavigatingToAssignment": {
+    "message": "Navigating to assignment page..."
+  },
+  "logCheckingFeedback": {
+    "message": "Checking for feedback button..."
+  },
+  "logNoFeedbackButton": {
+    "message": "No feedback button found, skipping..."
+  },
+  "logClickingFeedback": {
+    "message": "Clicking feedback button..."
+  },
+  "logScrapingQuestions": {
+    "message": "Scraping questions..."
+  },
+  "logScrapedQuestions": {
+    "message": "Scraped $COUNT$ question(s)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "10"
+      }
+    }
+  },
+  "logNoQuestionsFound": {
+    "message": "No questions found"
+  },
+  "logSavingData": {
+    "message": "Saving data..."
+  },
+  "logCompleted": {
+    "message": "Completed! Total questions: $TOTAL$, Assignments processed: $COUNT$",
+    "placeholders": {
+      "total": {
+        "content": "$1",
+        "example": "50"
+      },
+      "count": {
+        "content": "$2",
+        "example": "5"
+      }
+    }
+  },
+  "logError": {
+    "message": "Error: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Connection failed"
+      }
+    }
+  },
+  "logNoAssignments": {
+    "message": "No assignments or quizzes could be found on this page"
+  },
+  "logStopped": {
+    "message": "Auto-scrape cancelled by user"
+  },
+  "correct": {
+    "message": "answered correctly"
+  },
+  "incorrect": {
+    "message": "answered incorrectly"
+  },
+  "formatNormal": {
+    "message": "Normal"
+  },
+  "formatFormatted": {
+    "message": "Formatted"
+  },
+  "formatJson": {
+    "message": "JSON"
+  }
+}

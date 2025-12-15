@@ -100,7 +100,7 @@ function clearScrapedDataStorage(callback) {
 function generateNormalFormat(data) {
     if (!data || data.length === 0) return "";
 
-    const t = UI_TEXT[currentLang];
+    const t = UI_TEXT;
 
     let output = "";
     data.forEach((q, i) => {
@@ -117,7 +117,7 @@ function generateNormalFormat(data) {
 function generateFormattedOutput(data) {
     if (!data || data.length === 0) return "";
 
-    const t = UI_TEXT[currentLang];
+    const t = UI_TEXT;
 
     return data
         .map(q => {
@@ -164,7 +164,7 @@ function updatePreviewDisplay(data) {
     const formatSelect = document.getElementById("formatSelect");
     
     if (!data || data.length === 0) {
-        previewContent.innerText = UI_TEXT[currentLang].noData;
+        previewContent.innerText = UI_TEXT.noData;
         previewCount.innerText = "0";
     } else {
         const selectedFormat = formatSelect.value;
@@ -198,56 +198,73 @@ themeToggle.addEventListener("click", () => {
 });
 
 
-/* ---------------- LANGUAGE DROPDOWN ---------------- */
+/* ---------------- LANGUAGE SELECTOR ---------------- */
 
 const languageSelect = document.getElementById("languageSelect");
-let currentLang = "VI";
+let currentLang = "en";
 
-chrome.storage.sync.get(["lang"], res => {
-    currentLang = res.lang || "VI";
-    languageSelect.value = currentLang;
-    applyLanguage();
+// Wait for messages to load, then detect browser language or load saved preference
+messagesLoaded.then(() => {
+    chrome.storage.sync.get(["lang"], res => {
+        if (res.lang) {
+            // Use saved preference
+            currentLang = res.lang;
+        } else {
+            // Detect from browser and save
+            currentLang = detectBrowserLanguage();
+            chrome.storage.sync.set({ lang: currentLang });
+        }
+        languageSelect.value = currentLang;
+        UI_TEXT.setLanguage(currentLang);
+        applyLanguage();
+    });
 });
 
 languageSelect.addEventListener("change", () => {
     currentLang = languageSelect.value;
     chrome.storage.sync.set({ lang: currentLang });
+    UI_TEXT.setLanguage(currentLang);
     applyLanguage();
+    
+    // Reload existing data to update display with new language
+    loadScrapedDataFromStorage(data => {
+        updatePreviewDisplay(data);
+    });
 });
 
+// Apply translations on page load
 function applyLanguage() {
-    const t = UI_TEXT[currentLang];
-    document.getElementById("title").innerText = t.title;
-    document.getElementById("scrapeBtnText").innerText = t.scrape;
-    document.getElementById("autoScrapeBtnText").innerText = t.autoScrape;
-    document.getElementById("clearBtnText").innerText = t.clear;
-    document.getElementById("previewTitle").innerText = t.preview;
-    document.getElementById("btnDownload").innerText = t.download;
-    document.getElementById("formatLabel").innerText = t.format;
-    document.getElementById("infoToggleText").innerText = t.about;
-    document.getElementById("modalTitle").innerText = t.modalTitle;
-    document.getElementById("labelDefaultFormat").innerText = t.labelDefaultFormat;
-    document.getElementById("hintDefaultFormat").innerText = t.hintDefaultFormat;
-    document.getElementById("labelSeparator").innerText = t.labelSeparator;
-    document.getElementById("hintSeparator").innerText = t.hintSeparator;
-    document.getElementById("labelChoice").innerText = t.labelChoice;
-    document.getElementById("hintChoice").innerText = t.hintChoice;
-    document.getElementById("labelAnswer").innerText = t.labelAnswer;
-    document.getElementById("hintAnswer").innerText = t.hintAnswer;
-    document.getElementById("labelSuffix").innerText = t.labelSuffix;
-    document.getElementById("hintSuffix").innerText = t.hintSuffix;
-    document.getElementById("labelNavigationDelay").innerText = t.labelNavigationDelay;
-    document.getElementById("hintNavigationDelay").innerText = t.hintNavigationDelay;
-    document.getElementById("labelFeedbackDelay").innerText = t.labelFeedbackDelay;
-    document.getElementById("hintFeedbackDelay").innerText = t.hintFeedbackDelay;
-    document.getElementById("cancelSettings").innerText = t.cancel;
-    document.getElementById("saveSettings").innerText = t.save;
-    document.getElementById("infoVersion").innerText = t.infoVersion;
-    document.getElementById("infoAuthor").innerText = t.infoAuthor;
-    document.getElementById("infoGitHub").innerText = t.infoGitHub;
-    document.getElementById("infoHelp").innerText = t.infoHelp;
+    document.getElementById("title").innerText = UI_TEXT.title;
+    document.getElementById("scrapeBtnText").innerText = UI_TEXT.scrape;
+    document.getElementById("autoScrapeBtnText").innerText = UI_TEXT.autoScrape;
+    document.getElementById("clearBtnText").innerText = UI_TEXT.clear;
+    document.getElementById("previewTitle").innerText = UI_TEXT.preview;
+    document.getElementById("btnDownload").innerText = UI_TEXT.download;
+    document.getElementById("formatLabel").innerText = UI_TEXT.format;
+    document.getElementById("infoToggleText").innerText = UI_TEXT.about;
+    document.getElementById("modalTitle").innerText = UI_TEXT.modalTitle;
+    document.getElementById("labelDefaultFormat").innerText = UI_TEXT.labelDefaultFormat;
+    document.getElementById("hintDefaultFormat").innerText = UI_TEXT.hintDefaultFormat;
+    document.getElementById("labelSeparator").innerText = UI_TEXT.labelSeparator;
+    document.getElementById("hintSeparator").innerText = UI_TEXT.hintSeparator;
+    document.getElementById("labelChoice").innerText = UI_TEXT.labelChoice;
+    document.getElementById("hintChoice").innerText = UI_TEXT.hintChoice;
+    document.getElementById("labelAnswer").innerText = UI_TEXT.labelAnswer;
+    document.getElementById("hintAnswer").innerText = UI_TEXT.hintAnswer;
+    document.getElementById("labelSuffix").innerText = UI_TEXT.labelSuffix;
+    document.getElementById("hintSuffix").innerText = UI_TEXT.hintSuffix;
+    document.getElementById("labelNavigationDelay").innerText = UI_TEXT.labelNavigationDelay;
+    document.getElementById("hintNavigationDelay").innerText = UI_TEXT.hintNavigationDelay;
+    document.getElementById("labelFeedbackDelay").innerText = UI_TEXT.labelFeedbackDelay;
+    document.getElementById("hintFeedbackDelay").innerText = UI_TEXT.hintFeedbackDelay;
+    document.getElementById("cancelSettings").innerText = UI_TEXT.cancel;
+    document.getElementById("saveSettings").innerText = UI_TEXT.save;
+    document.getElementById("infoVersion").innerText = UI_TEXT.infoVersion;
+    document.getElementById("infoAuthor").innerText = UI_TEXT.infoAuthor;
+    document.getElementById("infoGitHub").innerText = UI_TEXT.infoGitHub;
+    document.getElementById("infoHelp").innerText = UI_TEXT.infoHelp;
     
-    // Update format selector options
+    // Update format options
     updateFormatOptions();
     
     // Update log panel title
@@ -257,13 +274,19 @@ function applyLanguage() {
 function updateFormatOptions() {
     const formatSelect = document.getElementById("formatSelect");
     const defaultFormatSelect = document.getElementById("defaultFormatSelect");
-    const attr = currentLang === "EN" ? "data-text-en" : "data-text-vi";
     
     [formatSelect, defaultFormatSelect].forEach(select => {
-        Array.from(select.options).forEach(option => {
-            const text = option.getAttribute(attr);
-            if (text) option.text = text;
-        });
+        const options = select.options;
+        for (let i = 0; i < options.length; i++) {
+            const value = options[i].value;
+            if (value === 'normal') {
+                options[i].text = UI_TEXT.formatNormal;
+            } else if (value === 'formatted') {
+                options[i].text = UI_TEXT.formatFormatted;
+            } else if (value === 'json') {
+                options[i].text = UI_TEXT.formatJson;
+            }
+        }
     });
 }
 
@@ -323,11 +346,11 @@ logToggleBtn.addEventListener("click", toggleLogPanel);
 logPanelClose.addEventListener("click", toggleLogPanel);
 logPanelOverlay.addEventListener("click", toggleLogPanel);
 
-// Update log panel title when language changes
+// Update log panel title
 function updateLogPanelTitle() {
     const titleElement = document.getElementById("logPanelTitleText");
     if (titleElement) {
-        titleElement.textContent = UI_TEXT[currentLang].logPanelTitle;
+        titleElement.textContent = UI_TEXT.logPanelTitle;
     }
 }
 
@@ -504,7 +527,7 @@ function pollAutoScrapeStatus() {
     chrome.runtime.sendMessage({ action: 'getAutoScrapeStatus' }, (response) => {
         if (chrome.runtime.lastError || !response) return;
         
-        const t = UI_TEXT[currentLang];
+        const t = UI_TEXT;
         
         // Update log panel with new logs
         if (response.logs && response.logs.length > 0) {
@@ -573,7 +596,7 @@ function stopStatusPolling() {
 }
 
 document.getElementById("autoScrapeBtn").addEventListener("click", () => {
-    const t = UI_TEXT[currentLang];
+    const t = UI_TEXT;
     const btn = document.getElementById("autoScrapeBtn");
     const btnText = btn.querySelector("#autoScrapeBtnText");
     const btnIcon = btn.querySelector(".btn-icon");
@@ -614,7 +637,7 @@ document.getElementById("autoScrapeBtn").addEventListener("click", () => {
             settings: {
                 navigationDelay: formatSettings.navigationDelay,
                 feedbackDelay: formatSettings.feedbackDelay,
-                language: currentLang  // Pass current language to background
+                language: currentLang
             }
         }, (response) => {
             if (chrome.runtime.lastError || !response || !response.success) {
@@ -644,7 +667,7 @@ document.getElementById("autoScrapeBtn").addEventListener("click", () => {
 // Poll status when popup opens if auto-scrape is running
 chrome.runtime.sendMessage({ action: 'getAutoScrapeStatus' }, (response) => {
     if (response && response.isRunning) {
-        const t = UI_TEXT[currentLang];
+        const t = UI_TEXT;
         const btn = document.getElementById("autoScrapeBtn");
         const btnText = btn.querySelector("#autoScrapeBtnText");
         const btnIcon = btn.querySelector(".btn-icon");

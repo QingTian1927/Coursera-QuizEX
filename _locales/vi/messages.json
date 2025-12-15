@@ -1,0 +1,264 @@
+{
+  "extensionName": {
+    "message": "Coursera QuizEx",
+    "description": "Name of the extension"
+  },
+  "extensionDescription": {
+    "message": "Giúp bạn thu thập câu hỏi và lựa chọn từ bài kiểm tra Coursera để học tập dễ dàng hơn.",
+    "description": "Description of the extension"
+  },
+  "actionTitle": {
+    "message": "Coursera QuizEX",
+    "description": "Title for the browser action"
+  },
+  "title": {
+    "message": "Coursera QuizEX"
+  },
+  "scrape": {
+    "message": "Quét trang"
+  },
+  "autoScrape": {
+    "message": "Tự động quét"
+  },
+  "cancelAutoScrape": {
+    "message": "Hủy"
+  },
+  "clear": {
+    "message": "Xóa dữ liệu"
+  },
+  "noData": {
+    "message": "Chưa có dữ liệu…"
+  },
+  "preview": {
+    "message": "Xem trước"
+  },
+  "download": {
+    "message": "Tải xuống"
+  },
+  "format": {
+    "message": "Định dạng:"
+  },
+  "copied": {
+    "message": "Đã sao chép!"
+  },
+  "about": {
+    "message": "Thông tin"
+  },
+  "modalTitle": {
+    "message": "Cài đặt"
+  },
+  "labelDefaultFormat": {
+    "message": "Định dạng mặc định"
+  },
+  "hintDefaultFormat": {
+    "message": "Định dạng dùng để xem trước và tải xuống"
+  },
+  "labelSeparator": {
+    "message": "Phân cách câu hỏi"
+  },
+  "hintSeparator": {
+    "message": "Ký tự giữa câu hỏi và các lựa chọn"
+  },
+  "labelChoice": {
+    "message": "Phân cách lựa chọn"
+  },
+  "hintChoice": {
+    "message": "Ký tự giữa các lựa chọn"
+  },
+  "labelAnswer": {
+    "message": "Tiền tố đáp án"
+  },
+  "hintAnswer": {
+    "message": "Ký tự trước đáp án đã chọn"
+  },
+  "labelSuffix": {
+    "message": "Hậu tố đáp án"
+  },
+  "hintSuffix": {
+    "message": "Ký tự sau đáp án đã chọn"
+  },
+  "labelNavigationDelay": {
+    "message": "Độ trễ điều hướng (ms)"
+  },
+  "hintNavigationDelay": {
+    "message": "Thời gian chờ sau khi điều hướng trang"
+  },
+  "labelFeedbackDelay": {
+    "message": "Độ trễ phản hồi (ms)"
+  },
+  "hintFeedbackDelay": {
+    "message": "Thời gian chờ sau khi nhấn nút phản hồi"
+  },
+  "cancel": {
+    "message": "Hủy"
+  },
+  "save": {
+    "message": "Lưu"
+  },
+  "infoVersion": {
+    "message": "Phiên bản:"
+  },
+  "infoAuthor": {
+    "message": "Tác giả:"
+  },
+  "infoGitHub": {
+    "message": "GitHub:"
+  },
+  "infoHelp": {
+    "message": "Trợ giúp:"
+  },
+  "alertTabError": {
+    "message": "Lỗi: Không thể truy cập tab hiện tại"
+  },
+  "alertNotOnCoursePage": {
+    "message": "Bạn có đang ở trang chào mừng khóa học không?\n\nVui lòng điều hướng đến trang chính của khóa học nơi bạn có thể thấy tất cả các mô-đun và bài học."
+  },
+  "alertNoAssignments": {
+    "message": "Không tìm thấy bài tập hoặc bài kiểm tra nào trên trang này.\n\nVui lòng đảm bảo bạn đang ở trang hiển thị các mô-đun khóa học."
+  },
+  "alertConnectionError": {
+    "message": "Không thể kết nối với trang.\n\nVui lòng làm mới trang và thử lại."
+  },
+  "alertAutoScrapeComplete": {
+    "message": "Tự động quét hoàn tất!\n\nTổng số câu hỏi đã quét: $TOTAL$\nBài tập đã xử lý: $COUNT$",
+    "placeholders": {
+      "total": {
+        "content": "$1",
+        "example": "50"
+      },
+      "count": {
+        "content": "$2",
+        "example": "5"
+      }
+    }
+  },
+  "alertAutoScrapeCancelled": {
+    "message": "Tự động quét đã bị hủy."
+  },
+  "alertAutoScrapeError": {
+    "message": "Đã xảy ra lỗi trong quá trình tự động quét:\n\n$ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Lỗi mạng"
+      }
+    }
+  },
+  "logPanelTitle": {
+    "message": "Nhật ký tự động quét"
+  },
+  "logStarting": {
+    "message": "Bắt đầu quá trình tự động quét..."
+  },
+  "logGettingFirstContent": {
+    "message": "Lấy nội dung khóa học đầu tiên..."
+  },
+  "logNavigatingToContent": {
+    "message": "Điều hướng đến trang nội dung đầu tiên..."
+  },
+  "logAlreadyOnModulePage": {
+    "message": "Đã ở trang mô-đun, bỏ qua điều hướng..."
+  },
+  "logExtractingAssignments": {
+    "message": "Trích xuất bài tập và bài kiểm tra..."
+  },
+  "logFoundAssignments": {
+    "message": "Tìm thấy $COUNT$ bài tập/bài kiểm tra",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "logProcessingAssignment": {
+    "message": "Xử lý $CURRENT$/$TOTAL$: $TITLE$",
+    "placeholders": {
+      "current": {
+        "content": "$1",
+        "example": "1"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      },
+      "title": {
+        "content": "$3",
+        "example": "Bài kiểm tra tuần 1"
+      }
+    }
+  },
+  "logNavigatingToAssignment": {
+    "message": "Điều hướng đến trang bài tập..."
+  },
+  "logCheckingFeedback": {
+    "message": "Kiểm tra nút phản hồi..."
+  },
+  "logNoFeedbackButton": {
+    "message": "Không tìm thấy nút phản hồi, bỏ qua..."
+  },
+  "logClickingFeedback": {
+    "message": "Nhấn nút phản hồi..."
+  },
+  "logScrapingQuestions": {
+    "message": "Quét câu hỏi..."
+  },
+  "logScrapedQuestions": {
+    "message": "Đã quét $COUNT$ câu hỏi",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "10"
+      }
+    }
+  },
+  "logNoQuestionsFound": {
+    "message": "Không tìm thấy câu hỏi"
+  },
+  "logSavingData": {
+    "message": "Lưu dữ liệu..."
+  },
+  "logCompleted": {
+    "message": "Hoàn tất! Tổng số câu hỏi: $TOTAL$, Bài tập đã xử lý: $COUNT$",
+    "placeholders": {
+      "total": {
+        "content": "$1",
+        "example": "50"
+      },
+      "count": {
+        "content": "$2",
+        "example": "5"
+      }
+    }
+  },
+  "logError": {
+    "message": "Lỗi: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Kết nối thất bại"
+      }
+    }
+  },
+  "logNoAssignments": {
+    "message": "Không tìm thấy bài tập hoặc bài kiểm tra nào trên trang này"
+  },
+  "logStopped": {
+    "message": "Tự động quét đã bị hủy bởi người dùng"
+  },
+  "correct": {
+    "message": "trả lời đúng"
+  },
+  "incorrect": {
+    "message": "trả lời sai"
+  },
+  "formatNormal": {
+    "message": "Bình thường"
+  },
+  "formatFormatted": {
+    "message": "Định dạng"
+  },
+  "formatJson": {
+    "message": "JSON"
+  }
+}
