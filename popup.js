@@ -96,6 +96,17 @@ function clearScrapedDataStorage(callback) {
 
 /* ---------------- FORMAT GENERATION ---------------- */
 
+// Helper function to get choice label (A, B, C... for <10 choices, 1, 2, 3... for >=10 choices)
+function getChoiceLabel(index, totalChoices) {
+    if (totalChoices < 10) {
+        // Use letters A, B, C, etc.
+        return String.fromCharCode(65 + index); // 65 is ASCII for 'A'
+    } else {
+        // Use numbers 1, 2, 3, etc.
+        return (index + 1).toString();
+    }
+}
+
 // Generate normal format (simple preview)
 function generateNormalFormat(data) {
     if (!data || data.length === 0) return "";
@@ -105,8 +116,10 @@ function generateNormalFormat(data) {
     let output = "";
     data.forEach((q, i) => {
         output += `Q${i + 1}: ${q.question} ${!q.correct ? `(${t.incorrect})` : ''}\n`;
-        q.choices.forEach(c => {
-            output += ` • ${c.text}${c.selected ? " (x)" : ""}\n`;
+        q.choices.forEach((c, idx) => {
+            const label = getChoiceLabel(idx, q.choices.length);
+            const separator = q.choices.length < 10 ? '.' : ')';
+            output += `  ${label}${separator} ${c.text}${c.selected ? " (x)" : ""}\n`;
         });
         output += "\n";
     });
@@ -121,8 +134,20 @@ function generateFormattedOutput(data) {
 
     return data
         .map(q => {
-            const sel = q.choices.find(c => c.selected)?.text || "";
-            const choicesText = q.choices.map(c => c.text).join(formatSettings.choiceSeparator);
+            // Find selected choice and include its label
+            let sel = "";
+            const selectedChoice = q.choices.findIndex(c => c.selected);
+            if (selectedChoice >= 0) {
+                const label = getChoiceLabel(selectedChoice, q.choices.length);
+                const separator = q.choices.length < 10 ? '.' : ')';
+                sel = `${label}${separator} ${q.choices[selectedChoice].text}`;
+            }
+            
+            const choicesText = q.choices.map((c, idx) => {
+                const label = getChoiceLabel(idx, q.choices.length);
+                const separator = q.choices.length < 10 ? '.' : ')';
+                return `${label}${separator} ${c.text}`;
+            }).join(formatSettings.choiceSeparator);
             const statusText = !q.correct ? ` (${t.incorrect})` : '';
             
             return q.question + 
