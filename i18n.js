@@ -21,8 +21,10 @@ async function loadMessages(locale) {
     
     try {
         const url = chrome.runtime.getURL(`_locales/${locale}/messages.json`);
+        console.log(`Loading messages from: ${url}`);
         const response = await fetch(url);
         const messages = await response.json();
+        console.log(`Loaded ${Object.keys(messages).length} messages for locale ${locale}`, Object.keys(messages).slice(0, 5));
         messagesCache[locale] = messages;
         return messages;
     } catch (error) {
@@ -37,10 +39,16 @@ async function loadMessages(locale) {
 
 // Promise to track when messages are loaded
 const messagesLoaded = (async function initMessages() {
-    await Promise.all([
-        loadMessages('en'),
-        loadMessages('vi')
-    ]);
+    console.log('initMessages() starting...');
+    try {
+        await Promise.all([
+            loadMessages('en'),
+            loadMessages('vi')
+        ]);
+        console.log('initMessages() completed, cache:', messagesCache);
+    } catch (error) {
+        console.error('initMessages() failed:', error);
+    }
 })();
 
 // Helper function to get message from loaded messages
@@ -173,6 +181,12 @@ const UI_TEXT = {
     logNavigatingToCourse(name) { return getMessageFromCache('logNavigatingToCourse', this._currentLang, [name]); },
     logCourseCompleted(name, total, count) { return getMessageFromCache('logCourseCompleted', this._currentLang, [name, total.toString(), count.toString()]); },
     logAllCoursesCompleted(courses, total) { return getMessageFromCache('logAllCoursesCompleted', this._currentLang, [courses.toString(), total.toString()]); },
+    
+    // Picker strings (for passing to content script)
+    get pickerTitle() { return getMessageFromCache('pickerTitle', this._currentLang); },
+    get pickerCancel() { return getMessageFromCache('pickerCancel', this._currentLang); },
+    get pickerNoPaths() { return getMessageFromCache('pickerNoPaths', this._currentLang); },
+    pickerCourseCount(count) { return getMessageFromCache('pickerCourseCount', this._currentLang, [count.toString()]); },
     
     // Question Status
     get correct() { return getMessageFromCache('correct', this._currentLang); },

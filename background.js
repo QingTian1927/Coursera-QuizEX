@@ -249,7 +249,20 @@ async function performAutoScrapeEntry(tabId, settings) {
         }
 
         addLog(t.logPromptSelectLearningPath, 'info');
-        const choice = await sendMessageToTab(tabId, { action: 'chooseLearningPath', paths });
+        // Pass translated strings to content script for picker UI
+        // Pre-translate course count strings for all paths
+        const pickerStrings = {
+            title: t.pickerTitle || 'Select a learning path to scrape',
+            cancel: t.pickerCancel || 'Cancel',
+            noPaths: t.pickerNoPaths || 'No learning paths found.',
+            courseCounts: {}
+        };
+        // Pre-compute translated course count for each unique count
+        const uniqueCounts = new Set(paths.map(p => p.courses?.length || 0));
+        uniqueCounts.forEach(count => {
+            pickerStrings.courseCounts[count] = t.pickerCourseCount(count) || `${count} course(s)`;
+        });
+        const choice = await sendMessageToTab(tabId, { action: 'chooseLearningPath', paths, pickerStrings });
         if (!choice || !choice.selectedId) {
             addLog(t.logUserCancelledPathSelection, 'warning');
             const result = await scrapeSingleCourseInternal(tabId, settings, t);

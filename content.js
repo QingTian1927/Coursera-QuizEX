@@ -168,21 +168,8 @@ function isOnMyLearningCompleted() {
     }
 }
 
-// Simple i18n helper using Chrome's i18n API
-function t(key, substitutions) {
-    try {
-        if (substitutions && !Array.isArray(substitutions)) {
-            substitutions = [substitutions];
-        }
-        const msg = chrome?.i18n?.getMessage ? chrome.i18n.getMessage(key, substitutions || []) : null;
-        return msg || key;
-    } catch {
-        return key;
-    }
-}
-
 // Show a lightweight overlay to choose a learning path
-function showLearningPathPicker(paths) {
+function showLearningPathPicker(paths, pickerStrings) {
     return new Promise(resolve => {
         // Clean any existing overlay
         const existing = document.getElementById('cqex-learning-path-picker');
@@ -210,7 +197,7 @@ function showLearningPathPicker(paths) {
         panel.style.color = '#111';
 
         const title = document.createElement('div');
-        title.textContent = t('pickerTitle');
+        title.textContent = pickerStrings.title;
         title.style.fontSize = '16px';
         title.style.fontWeight = '600';
         title.style.marginBottom = '12px';
@@ -218,10 +205,11 @@ function showLearningPathPicker(paths) {
         const list = document.createElement('div');
         list.style.display = 'grid';
         list.style.gap = '8px';
+        list.style.width = '100%';
 
         if (!paths || paths.length === 0) {
             const empty = document.createElement('div');
-            empty.textContent = t('pickerNoPaths');
+            empty.textContent = pickerStrings.noPaths;
             empty.style.padding = '12px';
             list.appendChild(empty);
         } else {
@@ -244,24 +232,29 @@ function showLearningPathPicker(paths) {
                 left.style.display = 'flex';
                 left.style.flexDirection = 'column';
                 left.style.gap = '2px';
+                left.style.flex = '1';
+                left.style.minWidth = '0';
 
                 const name = document.createElement('div');
                 name.textContent = p.title || p.id;
                 name.style.fontWeight = '600';
                 name.style.fontSize = '14px';
+                name.style.textAlign = 'left';
 
                 const meta = document.createElement('div');
                 const courseCount = (p.courses?.length || 0);
-                meta.textContent = t('pickerCourseCount', [String(courseCount)]) || `${courseCount}`;
+                meta.textContent = pickerStrings.courseCounts[courseCount] || `${courseCount} course(s)`;
                 meta.style.fontSize = '12px';
                 meta.style.color = '#6b7280';
+                meta.style.textAlign = 'left';
 
                 left.appendChild(name);
                 left.appendChild(meta);
 
                 const right = document.createElement('div');
-                right.innerHTML = '<svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0z"></path></svg>';
+                right.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg>';
                 right.style.color = '#9ca3af';
+                right.style.marginLeft = '12px';
 
                 item.appendChild(left);
                 item.appendChild(right);
@@ -280,7 +273,7 @@ function showLearningPathPicker(paths) {
 
         const cancel = document.createElement('button');
         cancel.type = 'button';
-        cancel.textContent = t('pickerCancel');
+        cancel.textContent = pickerStrings.cancel;
         cancel.style.border = '1px solid #e5e7eb';
         cancel.style.background = '#fff';
         cancel.style.borderRadius = '8px';
@@ -365,8 +358,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
     if (msg && msg.action === "chooseLearningPath") {
         const paths = msg.paths || [];
-        showLearningPathPicker(paths).then(result => {
+        const pickerStrings = msg.pickerStrings || {
+            title: 'Select a learning path to scrape',
+            cancel: 'Cancel',
+            noPaths: 'No learning paths found.',
+            courseCounts: {}
+        };
+        showLearningPathPicker(paths, pickerStrings).then(result => {
             sendResponse(result || { selectedId: null });
+        }).catch(err => {
+            console.error('Picker error:', err);
+            sendResponse({ selectedId: null });
         });
         return true; // async response
     }
