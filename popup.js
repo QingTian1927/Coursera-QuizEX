@@ -168,6 +168,60 @@ function generateJSONFormat(data) {
     return JSON.stringify(data, null, 2);
 }
 
+// CSV escaping per RFC4180 basic rules
+function csvEscape(value) {
+    if (value == null) return "";
+    const str = String(value);
+    const needsQuotes = /[",\n]/.test(str);
+    const escaped = str.replace(/"/g, '""');
+    return needsQuotes ? `"${escaped}"` : escaped;
+}
+
+// Generate CSV format (Anki-friendly: Front, Back, Tags)
+// Uses Anki file headers format (2.1.54+) to prevent header row being imported as a card
+// Front = question + <br><br> + labeled choices (each on new line with <br>)
+// Back = labeled answer (with incorrect marker if applicable)
+// Tags = "correct" or "incorrect" based on answer correctness
+function generateCSVFormat(data) {
+    if (!data || data.length === 0) return "";
+
+    const t = UI_TEXT;
+    
+    // Anki file headers (lines starting with # are configuration, not data)
+    const fileHeaders = [
+        "#separator:Comma",
+        "#html:true",
+        "#columns:Front,Back,Tags"
+    ].join("\n");
+    
+    const rows = data.map(q => {
+        // Format choices with <br> for HTML newlines (one per line)
+        const choices = q.choices.map((c, idx) => {
+            const label = getChoiceLabel(idx, q.choices.length);
+            const sep = q.choices.length < 10 ? '.' : ')';
+            return `${label}${sep} ${c.text}`;
+        }).join("<br>");
+
+        // Front: question + <br> + choices (each on separate line)
+        const front = `${q.question}<br><br>${choices}`;
+
+        const selectedIdx = q.choices.findIndex(c => c.selected);
+        let back = "";
+        if (selectedIdx >= 0) {
+            const label = getChoiceLabel(selectedIdx, q.choices.length);
+            const sep = q.choices.length < 10 ? '.' : ')';
+            const statusText = !q.correct ? ` (${t.incorrect})` : '';
+            back = `${label}${sep} ${q.choices[selectedIdx].text}${statusText}`;
+        }
+
+        const tags = q.correct ? "correct" : "incorrect";
+
+        return [front, back, tags].map(csvEscape).join(",");
+    });
+
+    return [fileHeaders, ...rows].join("\n");
+}
+
 // Get formatted output based on selected format
 function getFormattedOutput(data, format) {
     switch(format) {
@@ -175,6 +229,8 @@ function getFormattedOutput(data, format) {
             return generateNormalFormat(data);
         case "formatted":
             return generateFormattedOutput(data);
+        case "csv":
+            return generateCSVFormat(data);
         case "json":
             return generateJSONFormat(data);
         default:
@@ -308,6 +364,10 @@ function updateFormatOptions() {
                 options[i].text = UI_TEXT.formatNormal;
             } else if (value === 'formatted') {
                 options[i].text = UI_TEXT.formatFormatted;
+            } else if (value === 'csv') {
+                if (UI_TEXT.formatCsv) {
+                    options[i].text = UI_TEXT.formatCsv;
+                }
             } else if (value === 'json') {
                 options[i].text = UI_TEXT.formatJson;
             }
@@ -739,6 +799,9 @@ document.getElementById("downloadBtn").addEventListener("click", () => {
         if (selectedFormat === "json") {
             blob = new Blob([output], { type: "application/json" });
             filename = "coursera_questions.json";
+        } else if (selectedFormat === "csv") {
+            blob = new Blob([output], { type: "text/csv" });
+            filename = "coursera_flashcards.csv";
         } else {
             blob = new Blob([output], { type: "text/plain" });
             filename = selectedFormat === "formatted" 
