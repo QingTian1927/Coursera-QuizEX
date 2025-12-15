@@ -321,20 +321,20 @@ function clearLog() {
     logPanelBody.innerHTML = "";
 }
 
-function addLogEntry(message, type = "info") {
+function addLogEntry(message, type = "info", timestamp = null) {
     const entry = document.createElement("div");
     entry.className = "log-entry";
     
-    const timestamp = document.createElement("span");
-    timestamp.className = "log-timestamp";
-    const now = new Date();
-    timestamp.textContent = `[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}]`;
+    const timestampEl = document.createElement("span");
+    timestampEl.className = "log-timestamp";
+    // Use provided timestamp or calculate new one
+    timestampEl.textContent = timestamp || `[${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}:${new Date().getSeconds().toString().padStart(2, '0')}]`;
     
     const msgElement = document.createElement("span");
     msgElement.className = `log-message ${type}`;
     msgElement.textContent = message;
     
-    entry.appendChild(timestamp);
+    entry.appendChild(timestampEl);
     entry.appendChild(msgElement);
     logPanelBody.appendChild(entry);
     
@@ -533,7 +533,7 @@ function pollAutoScrapeStatus() {
         if (response.logs && response.logs.length > 0) {
             clearLog();
             response.logs.forEach(log => {
-                addLogEntry(log.message, log.type);
+                addLogEntry(log.message, log.type, log.timestamp);
             });
         }
         
