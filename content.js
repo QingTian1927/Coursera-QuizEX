@@ -30,6 +30,63 @@ function scrapeCoursera() {
     return results;
 }
 
+// Extract learning paths from "My Learning" page
+function extractLearningPaths() {
+    // Only iterate top-level enrolled cards; avoid course cards within the path
+    const enrolledCards = document.querySelectorAll('.rc-MultiCourseProductEnrolledCard');
+    const seen = new Set();
+    const paths = [];
+
+    enrolledCards.forEach(card => {
+        const header = card.querySelector('.rc-BadgeCardHeader .CourseAndPartnerName');
+        if (!header) return;
+
+        const id = header.getAttribute('id') || '';
+        const titleEl = header.querySelector('.cds-144');
+        const title = titleEl ? titleEl.textContent.trim() : header.textContent.trim();
+
+        if (id && title && !seen.has(id)) {
+            seen.add(id);
+
+            // Extract course IDs from the circle menu
+            const courseIds = [];
+            const circleMenu = card.querySelector('.rc-MultiCourseProductCirclesMenu');
+            if (circleMenu) {
+                const menuItems = circleMenu.querySelectorAll('[data-e2e^="s12n-circles-menu-item~"]');
+                menuItems.forEach(item => {
+                    const dataE2e = item.getAttribute('data-e2e') || '';
+                    const match = dataE2e.match(/s12n-circles-menu-item~(.+)/);
+                    if (match && match[1]) {
+                        courseIds.push(match[1]);
+                    }
+                });
+            }
+
+            // Extract course details for each course ID
+            const courses = [];
+            courseIds.forEach(courseId => {
+                const courseCard = document.querySelector(`[data-e2e="CourseCard~${courseId}"]`);
+                if (courseCard) {
+                    const courseName = courseCard.querySelector('.CourseAndPartnerName .cds-144')?.textContent.trim() || '';
+                    const courseLink = courseCard.querySelector('.CourseActionBox a')?.href || '';
+
+                    if (courseName && courseLink) {
+                        courses.push({
+                            id: courseId,
+                            name: courseName,
+                            link: courseLink
+                        });
+                    }
+                }
+            });
+
+            paths.push({ id, title, courses });
+        }
+    });
+
+    return paths;
+}
+
 function getFirstCourseContent() {
     try {
         // Find the first module lesson list
@@ -95,6 +152,162 @@ function getViewFeedbackButton() {
     return button; // returns the DOM element
 }
 
+// Detect if on My Learning page with Completed tab selected
+function isOnMyLearningCompleted() {
+    try {
+        const myLearningLink = document.querySelector('[data-testid="nav-link-grid-item-my_learning"]');
+        const onMyLearning = !!myLearningLink && (
+            myLearningLink.classList.contains('isCurrent') ||
+            myLearningLink.getAttribute('aria-current') === 'page' ||
+            (typeof location !== 'undefined' && location.pathname.includes('/my-learning'))
+        );
+        const completedChip = document.querySelector('[data-e2e="my-learning-tab-completed"][aria-selected="true"]');
+        return !!(onMyLearning && completedChip);
+    } catch (e) {
+        return false;
+    }
+}
+
+// Simple i18n helper using Chrome's i18n API
+function t(key, substitutions) {
+    try {
+        if (substitutions && !Array.isArray(substitutions)) {
+            substitutions = [substitutions];
+        }
+        const msg = chrome?.i18n?.getMessage ? chrome.i18n.getMessage(key, substitutions || []) : null;
+        return msg || key;
+    } catch {
+        return key;
+    }
+}
+
+// Show a lightweight overlay to choose a learning path
+function showLearningPathPicker(paths) {
+    return new Promise(resolve => {
+        // Clean any existing overlay
+        const existing = document.getElementById('cqex-learning-path-picker');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'cqex-learning-path-picker';
+        overlay.style.position = 'fixed';
+        overlay.style.inset = '0';
+        overlay.style.background = 'rgba(0,0,0,0.35)';
+        overlay.style.zIndex = '2147483647';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+
+        const panel = document.createElement('div');
+        panel.style.width = 'min(520px, 92vw)';
+        panel.style.maxHeight = '80vh';
+        panel.style.overflow = 'auto';
+        panel.style.background = '#fff';
+        panel.style.borderRadius = '12px';
+        panel.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
+        panel.style.padding = '16px';
+        panel.style.fontFamily = 'system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif';
+        panel.style.color = '#111';
+
+        const title = document.createElement('div');
+        title.textContent = t('pickerTitle');
+        title.style.fontSize = '16px';
+        title.style.fontWeight = '600';
+        title.style.marginBottom = '12px';
+
+        const list = document.createElement('div');
+        list.style.display = 'grid';
+        list.style.gap = '8px';
+
+        if (!paths || paths.length === 0) {
+            const empty = document.createElement('div');
+            empty.textContent = t('pickerNoPaths');
+            empty.style.padding = '12px';
+            list.appendChild(empty);
+        } else {
+            paths.forEach(p => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.style.display = 'flex';
+                item.style.justifyContent = 'space-between';
+                item.style.alignItems = 'center';
+                item.style.width = '100%';
+                item.style.border = '1px solid #e5e7eb';
+                item.style.borderRadius = '8px';
+                item.style.padding = '10px 12px';
+                item.style.background = '#fff';
+                item.style.cursor = 'pointer';
+                item.onmouseenter = () => { item.style.background = '#f9fafb'; };
+                item.onmouseleave = () => { item.style.background = '#fff'; };
+
+                const left = document.createElement('div');
+                left.style.display = 'flex';
+                left.style.flexDirection = 'column';
+                left.style.gap = '2px';
+
+                const name = document.createElement('div');
+                name.textContent = p.title || p.id;
+                name.style.fontWeight = '600';
+                name.style.fontSize = '14px';
+
+                const meta = document.createElement('div');
+                const courseCount = (p.courses?.length || 0);
+                meta.textContent = t('pickerCourseCount', [String(courseCount)]) || `${courseCount}`;
+                meta.style.fontSize = '12px';
+                meta.style.color = '#6b7280';
+
+                left.appendChild(name);
+                left.appendChild(meta);
+
+                const right = document.createElement('div');
+                right.innerHTML = '<svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0z"></path></svg>';
+                right.style.color = '#9ca3af';
+
+                item.appendChild(left);
+                item.appendChild(right);
+                item.addEventListener('click', () => {
+                    overlay.remove();
+                    resolve({ selectedId: p.id });
+                });
+                list.appendChild(item);
+            });
+        }
+
+        const footer = document.createElement('div');
+        footer.style.display = 'flex';
+        footer.style.justifyContent = 'flex-end';
+        footer.style.marginTop = '12px';
+
+        const cancel = document.createElement('button');
+        cancel.type = 'button';
+        cancel.textContent = t('pickerCancel');
+        cancel.style.border = '1px solid #e5e7eb';
+        cancel.style.background = '#fff';
+        cancel.style.borderRadius = '8px';
+        cancel.style.padding = '8px 12px';
+        cancel.style.cursor = 'pointer';
+        cancel.addEventListener('click', () => {
+            overlay.remove();
+            resolve({ selectedId: null });
+        });
+
+        panel.appendChild(title);
+        panel.appendChild(list);
+        panel.appendChild(footer);
+        footer.appendChild(cancel);
+        overlay.appendChild(panel);
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+                resolve({ selectedId: null });
+            }
+        });
+
+        document.body.appendChild(overlay);
+    });
+}
+
 // Message listener for various actions
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg && msg.action === "scrape") {
@@ -102,25 +315,25 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ data });
         return false;
     }
-    
+
     if (msg && msg.action === "getFirstCourseContent") {
         const data = getFirstCourseContent();
         sendResponse({ data });
         return false;
     }
-    
+
     if (msg && msg.action === "extractAssignments") {
         const data = extractAssignments();
         sendResponse({ data });
         return false;
     }
-    
+
     if (msg && msg.action === "getViewFeedbackButton") {
         const button = getViewFeedbackButton();
         sendResponse({ hasButton: button !== null });
         return false;
     }
-    
+
     if (msg && msg.action === "clickViewFeedbackButton") {
         const button = getViewFeedbackButton();
         if (button) {
@@ -136,5 +349,25 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             sendResponse({ success: false, data: [] });
             return false;
         }
+    }
+
+    if (msg && msg.action === "isOnMyLearningCompleted") {
+        const isMyLearningCompleted = isOnMyLearningCompleted();
+        sendResponse({ isMyLearningCompleted });
+        return false;
+    }
+
+    if (msg && msg.action === "getLearningPaths") {
+        const data = extractLearningPaths();
+        sendResponse({ data });
+        return false;
+    }
+
+    if (msg && msg.action === "chooseLearningPath") {
+        const paths = msg.paths || [];
+        showLearningPathPicker(paths).then(result => {
+            sendResponse(result || { selectedId: null });
+        });
+        return true; // async response
     }
 });

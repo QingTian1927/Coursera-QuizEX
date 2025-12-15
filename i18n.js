@@ -161,6 +161,18 @@ const UI_TEXT = {
     logError(error) { return getMessageFromCache('logError', this._currentLang, [error]); },
     get logNoAssignments() { return getMessageFromCache('logNoAssignments', this._currentLang); },
     get logStopped() { return getMessageFromCache('logStopped', this._currentLang); },
+
+    // Multi-course (Learning Paths)
+    get logCheckingMyLearning() { return getMessageFromCache('logCheckingMyLearning', this._currentLang); },
+    get logOnMyLearningCompleted() { return getMessageFromCache('logOnMyLearningCompleted', this._currentLang); },
+    get logNotOnMyLearning() { return getMessageFromCache('logNotOnMyLearning', this._currentLang); },
+    logFoundLearningPaths(count) { return getMessageFromCache('logFoundLearningPaths', this._currentLang, [count.toString()]); },
+    get logPromptSelectLearningPath() { return getMessageFromCache('logPromptSelectLearningPath', this._currentLang); },
+    get logUserCancelledPathSelection() { return getMessageFromCache('logUserCancelledPathSelection', this._currentLang); },
+    logSelectedLearningPath(title, count) { return getMessageFromCache('logSelectedLearningPath', this._currentLang, [title, count.toString()]); },
+    logNavigatingToCourse(name) { return getMessageFromCache('logNavigatingToCourse', this._currentLang, [name]); },
+    logCourseCompleted(name, total, count) { return getMessageFromCache('logCourseCompleted', this._currentLang, [name, total.toString(), count.toString()]); },
+    logAllCoursesCompleted(courses, total) { return getMessageFromCache('logAllCoursesCompleted', this._currentLang, [courses.toString(), total.toString()]); },
     
     // Question Status
     get correct() { return getMessageFromCache('correct', this._currentLang); },

@@ -79,122 +79,225 @@ function sendMessageToTab(tabId, message) {
 // Helper function to navigate and wait for page load
 function navigateToURL(tabId, url, navigationDelay) {
     return new Promise((resolve) => {
+        // Early exit if cancelled
+        if (autoScrapeState.isCancelled) {
+            resolve('cancelled');
+            return;
+        }
         chrome.tabs.update(tabId, { url }, () => {
             chrome.tabs.onUpdated.addListener(function listener(updatedTabId, changeInfo) {
                 if (updatedTabId === tabId && changeInfo.status === 'complete') {
                     chrome.tabs.onUpdated.removeListener(listener);
-                    setTimeout(() => resolve(), navigationDelay);
+                    // If cancelled during navigation delay, exit early
+                    const delay = navigationDelay || DEFAULT_NAVIGATION_DELAY;
+                    const start = Date.now();
+                    const tick = () => {
+                        if (autoScrapeState.isCancelled) {
+                            resolve('cancelled');
+                            return;
+                        }
+                        if (Date.now() - start >= delay) {
+                            resolve('done');
+                        } else {
+                            setTimeout(tick, 100);
+                        }
+                    };
+                    tick();
                 }
             });
         });
     });
 }
 
-// Main auto-scrape function running in background
-async function performBackgroundAutoScrape(tabId, settings) {
+// Helper: scrape current course on the active page (no state reset here)
+async function scrapeSingleCourseInternal(tabId, settings, t) {
+    const navigationDelay = settings.navigationDelay || DEFAULT_NAVIGATION_DELAY;
+    const feedbackDelay = settings.feedbackDelay || DEFAULT_FEEDBACK_DELAY;
+
+    // Step 1: Try to get first course content
+    addLog(t.logGettingFirstContent, 'info');
+    let response = await sendMessageToTab(tabId, { action: "getFirstCourseContent" });
+
+    if (response && response.data && response.data.url) {
+        addLog(t.logNavigatingToContent, 'info');
+        const navResult = await navigateToURL(tabId, response.data.url, navigationDelay);
+        if (navResult === 'cancelled') {
+            addLog(t.logStopped, 'warning');
+            return { totalScraped: 0, assignmentCount: 0, cancelled: true };
+        }
+    } else {
+        addLog(t.logAlreadyOnModulePage, 'info');
+    }
+
+    // Step 2: Extract assignments
+    addLog(t.logExtractingAssignments, 'info');
+    response = await sendMessageToTab(tabId, { action: "extractAssignments" });
+
+        if (!response || !response.data || response.data.length === 0) {
+        addLog(t.logNoAssignments, 'error');
+        autoScrapeState.error = 'No assignments found';
+            return { totalScraped: 0, assignmentCount: 0, cancelled: false };
+    }
+
+    const assignments = response.data;
+    autoScrapeState.progress.total = assignments.length;
+    addLog(t.logFoundAssignments(assignments.length), 'success');
+
+    let totalScraped = 0;
+
+    // Process each assignment
+    for (let i = 0; i < assignments.length; i++) {
+        if (autoScrapeState.isCancelled) {
+            addLog(t.logStopped, 'warning');
+            autoScrapeState.isCancelled = false;
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return { totalScraped, assignmentCount: i };
+        }
+
+        const assignment = assignments[i];
+        autoScrapeState.progress.current = i + 1;
+        addLog(t.logProcessingAssignment(i + 1, assignments.length, assignment.title), 'info');
+
+        // Navigate to assignment
+        addLog(t.logNavigatingToAssignment, 'info');
+        const navAssign = await navigateToURL(tabId, assignment.url, navigationDelay);
+        if (navAssign === 'cancelled') {
+            addLog(t.logStopped, 'warning');
+            return { totalScraped, assignmentCount: i, cancelled: true };
+        }
+
+        // Check for feedback button
+        addLog(t.logCheckingFeedback, 'info');
+        response = await sendMessageToTab(tabId, { action: "getViewFeedbackButton" });
+
+        if (!response || !response.hasButton) {
+            addLog(t.logNoFeedbackButton, 'warning');
+            continue;
+        }
+
+        // Click feedback and scrape
+        addLog(t.logClickingFeedback, 'info');
+        addLog(t.logScrapingQuestions, 'info');
+        // Respect cancellation during feedback wait by splitting delay handling: content side handles delay
+        if (autoScrapeState.isCancelled) {
+            addLog(t.logStopped, 'warning');
+            return { totalScraped, assignmentCount: i, cancelled: true };
+        }
+        response = await sendMessageToTab(tabId, { action: "clickViewFeedbackButton", delay: feedbackDelay });
+
+        if (response && response.success && response.data && response.data.length > 0) {
+            addLog(t.logScrapedQuestions(response.data.length), 'success');
+            addLog(t.logSavingData, 'info');
+
+            // Save data to storage
+            const result = await chrome.storage.local.get(['scrapedData']);
+            const existingData = result.scrapedData || [];
+            const updatedData = [...existingData, ...response.data];
+            await chrome.storage.local.set({ scrapedData: updatedData });
+
+            totalScraped += response.data.length;
+        } else {
+            addLog(t.logNoQuestionsFound, 'warning');
+        }
+    }
+
+    addLog(t.logCompleted(totalScraped, assignments.length), 'success');
+    return { totalScraped, assignmentCount: assignments.length, cancelled: false };
+}
+
+// Entry point: Multi-course (learning paths) or single-course fallback
+async function performAutoScrapeEntry(tabId, settings) {
     // Wait for messages to load
     await messagesLoaded;
-    
+
     autoScrapeState.isRunning = true;
+    autoScrapeState.isCancelled = false;
     autoScrapeState.logs = [];
     autoScrapeState.progress = { current: 0, total: 0 };
     autoScrapeState.error = null;
-    
-    const navigationDelay = settings.navigationDelay || DEFAULT_NAVIGATION_DELAY;
-    const feedbackDelay = settings.feedbackDelay || DEFAULT_FEEDBACK_DELAY;
+
     const lang = settings.language || detectBrowserLanguage();
     UI_TEXT.setLanguage(lang);
     const t = UI_TEXT;
-    
+
     try {
         addLog(t.logStarting, 'info');
-        
-        // Step 1: Try to get first course content
-        addLog(t.logGettingFirstContent, 'info');
-        let response = await sendMessageToTab(tabId, { action: "getFirstCourseContent" });
-        
-        if (response && response.data && response.data.url) {
-            addLog(t.logNavigatingToContent, 'info');
-            await navigateToURL(tabId, response.data.url, navigationDelay);
-        } else {
-            addLog(t.logAlreadyOnModulePage, 'info');
-        }
-        
-        // Step 2: Extract assignments
-        addLog(t.logExtractingAssignments, 'info');
-        response = await sendMessageToTab(tabId, { action: "extractAssignments" });
-        
-        if (!response || !response.data || response.data.length === 0) {
-            addLog(t.logNoAssignments, 'error');
-            autoScrapeState.error = 'No assignments found';
+        addLog(t.logCheckingMyLearning, 'info');
+
+        // Check if on My Learning > Completed
+        let detection = await sendMessageToTab(tabId, { action: 'isOnMyLearningCompleted' });
+        const onMyLearningCompleted = !!(detection && detection.isMyLearningCompleted);
+
+        if (!onMyLearningCompleted) {
+            addLog(t.logNotOnMyLearning, 'info');
+            const result = await scrapeSingleCourseInternal(tabId, settings, t);
             autoScrapeState.isRunning = false;
             return;
         }
-        
-        const assignments = response.data;
-        autoScrapeState.progress.total = assignments.length;
-        addLog(t.logFoundAssignments(assignments.length), 'success');
-        
-        let totalScraped = 0;
-        
-        // Process each assignment
-        for (let i = 0; i < assignments.length; i++) {
-            // Check if cancelled
+
+        addLog(t.logOnMyLearningCompleted, 'info');
+        // Get learning paths
+        const pathsResp = await sendMessageToTab(tabId, { action: 'getLearningPaths' });
+        const paths = (pathsResp && pathsResp.data) || [];
+        addLog(t.logFoundLearningPaths(paths.length), 'success');
+
+        if (!paths.length) {
+            addLog(t.logNotOnMyLearning, 'info');
+            const result = await scrapeSingleCourseInternal(tabId, settings, t);
+            autoScrapeState.isRunning = false;
+            return;
+        }
+
+        addLog(t.logPromptSelectLearningPath, 'info');
+        const choice = await sendMessageToTab(tabId, { action: 'chooseLearningPath', paths });
+        if (!choice || !choice.selectedId) {
+            addLog(t.logUserCancelledPathSelection, 'warning');
+            const result = await scrapeSingleCourseInternal(tabId, settings, t);
+            autoScrapeState.isRunning = false;
+            return;
+        }
+
+        const selected = paths.find(p => p.id === choice.selectedId);
+        if (!selected) {
+            addLog(t.logUserCancelledPathSelection, 'warning');
+            const result = await scrapeSingleCourseInternal(tabId, settings, t);
+            autoScrapeState.isRunning = false;
+            return;
+        }
+
+        addLog(t.logSelectedLearningPath(selected.title, selected.courses.length), 'info');
+
+        // Iterate courses in the selected path
+        let grandTotal = 0;
+        for (const course of selected.courses) {
             if (autoScrapeState.isCancelled) {
                 addLog(t.logStopped, 'warning');
-                autoScrapeState.isCancelled = false;
-                // Small delay to ensure popup gets the final log update
-                await new Promise(resolve => setTimeout(resolve, 1000));
                 autoScrapeState.isRunning = false;
+                autoScrapeState.isCancelled = false;
+                return; // stop entire flow immediately
+            }
+            addLog(t.logNavigatingToCourse(course.name || course.id), 'info');
+            const navCourse = await navigateToURL(tabId, course.link, settings.navigationDelay || DEFAULT_NAVIGATION_DELAY);
+            if (navCourse === 'cancelled') {
+                addLog(t.logStopped, 'warning');
+                autoScrapeState.isRunning = false;
+                autoScrapeState.isCancelled = false;
                 return;
             }
-            
-            const assignment = assignments[i];
-            autoScrapeState.progress.current = i + 1;
-            addLog(t.logProcessingAssignment(i + 1, assignments.length, assignment.title), 'info');
-            
-            // Navigate to assignment
-            addLog(t.logNavigatingToAssignment, 'info');
-            await navigateToURL(tabId, assignment.url, navigationDelay);
-            
-            // Check for feedback button
-            addLog(t.logCheckingFeedback, 'info');
-            response = await sendMessageToTab(tabId, { action: "getViewFeedbackButton" });
-            
-            if (!response || !response.hasButton) {
-                addLog(t.logNoFeedbackButton, 'warning');
-                continue;
+            const { totalScraped, assignmentCount, cancelled } = await scrapeSingleCourseInternal(tabId, settings, t);
+            if (cancelled) {
+                autoScrapeState.isRunning = false;
+                autoScrapeState.isCancelled = false;
+                return;
             }
-            
-            // Click feedback and scrape
-            addLog(t.logClickingFeedback, 'info');
-            addLog(t.logScrapingQuestions, 'info');
-            response = await sendMessageToTab(tabId, { 
-                action: "clickViewFeedbackButton",
-                delay: feedbackDelay
-            });
-            
-            if (response && response.success && response.data && response.data.length > 0) {
-                addLog(t.logScrapedQuestions(response.data.length), 'success');
-                addLog(t.logSavingData, 'info');
-                
-                // Save data to storage
-                const result = await chrome.storage.local.get(['scrapedData']);
-                const existingData = result.scrapedData || [];
-                const updatedData = [...existingData, ...response.data];
-                await chrome.storage.local.set({ scrapedData: updatedData });
-                
-                totalScraped += response.data.length;
-            } else {
-                addLog(t.logNoQuestionsFound, 'warning');
-            }
+            grandTotal += totalScraped;
+            addLog(t.logCourseCompleted(course.name || course.id, totalScraped, assignmentCount), 'success');
         }
-        
-        addLog(t.logCompleted(totalScraped, assignments.length), 'success');
+
+        addLog(t.logAllCoursesCompleted(selected.courses.length, grandTotal), 'success');
         autoScrapeState.isRunning = false;
-        
     } catch (error) {
-        console.error("Background auto-scrape error:", error);
+        console.error('Auto-scrape entry error:', error);
         addLog(t.logError(error.message || error), 'error');
         autoScrapeState.error = error.message || String(error);
         autoScrapeState.isRunning = false;
@@ -256,7 +359,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     return;
                 }
                 
-                performBackgroundAutoScrape(tabs[0].id, message.settings || {})
+                performAutoScrapeEntry(tabs[0].id, message.settings || {})
                     .then(() => {
                         console.log('Auto-scrape completed');
                     })

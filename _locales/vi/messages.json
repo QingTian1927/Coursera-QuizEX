@@ -246,6 +246,68 @@
   "logStopped": {
     "message": "Tự động quét đã bị hủy bởi người dùng"
   },
+  "logCheckingMyLearning": {
+    "message": "Đang kiểm tra trang 'Học tập của tôi' và thẻ Đã hoàn thành..."
+  },
+  "logOnMyLearningCompleted": {
+    "message": "Đang ở 'Học tập của tôi' > Đã hoàn thành. Chuẩn bị danh sách lộ trình..."
+  },
+  "logNotOnMyLearning": {
+    "message": "Không ở 'Học tập của tôi' > Đã hoàn thành. Chạy luồng đơn khóa học."
+  },
+  "logFoundLearningPaths": {
+    "message": "Tìm thấy $COUNT$ lộ trình học",
+    "placeholders": {
+      "count": { "content": "$1", "example": "2" }
+    }
+  },
+  "logPromptSelectLearningPath": {
+    "message": "Yêu cầu người dùng chọn lộ trình học..."
+  },
+  "logUserCancelledPathSelection": {
+    "message": "Người dùng đã hủy chọn lộ trình. Chạy luồng đơn khóa học."
+  },
+  "logSelectedLearningPath": {
+    "message": "Đã chọn lộ trình: $TITLE$ ($COUNT$ khóa)",
+    "placeholders": {
+      "title": { "content": "$1", "example": "Khoa học dữ liệu" },
+      "count": { "content": "$2", "example": "4" }
+    }
+  },
+  "logNavigatingToCourse": {
+    "message": "Điều hướng đến khóa học: $NAME$",
+    "placeholders": {
+      "name": { "content": "$1", "example": "Nhập môn ML" }
+    }
+  },
+  "logCourseCompleted": {
+    "message": "Hoàn tất khóa '$NAME$'. Tổng câu hỏi: $TOTAL$, Bài tập đã xử lý: $COUNT$",
+    "placeholders": {
+      "name": { "content": "$1", "example": "Nhập môn ML" },
+      "total": { "content": "$2", "example": "20" },
+      "count": { "content": "$3", "example": "3" }
+    }
+  },
+  "logAllCoursesCompleted": {
+    "message": "Hoàn tất tất cả khóa. Số khóa: $COURSES$, Tổng câu hỏi: $TOTAL$",
+    "placeholders": {
+      "courses": { "content": "$1", "example": "4" },
+      "total": { "content": "$2", "example": "80" }
+    }
+  },
+  "pickerTitle": {
+    "message": "Chọn lộ trình học để quét"
+  },
+  "pickerCancel": {
+    "message": "Hủy"
+  },
+  "pickerNoPaths": {
+    "message": "Không tìm thấy lộ trình học."
+  },
+  "pickerCourseCount": {
+    "message": "$1$ khóa học",
+    "placeholders": { "1": { "content": "$1", "example": "3" } }
+  },
   "correct": {
     "message": "trả lời đúng"
   },

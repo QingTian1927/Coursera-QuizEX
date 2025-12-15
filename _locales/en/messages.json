@@ -246,6 +246,68 @@
   "logStopped": {
     "message": "Auto-scrape cancelled by user"
   },
+  "logCheckingMyLearning": {
+    "message": "Checking 'My Learning' page and Completed tab..."
+  },
+  "logOnMyLearningCompleted": {
+    "message": "On 'My Learning' > Completed. Preparing learning paths..."
+  },
+  "logNotOnMyLearning": {
+    "message": "Not on 'My Learning' > Completed. Running single-course flow."
+  },
+  "logFoundLearningPaths": {
+    "message": "Found $COUNT$ learning path(s)",
+    "placeholders": {
+      "count": { "content": "$1", "example": "2" }
+    }
+  },
+  "logPromptSelectLearningPath": {
+    "message": "Prompting user to select a learning path..."
+  },
+  "logUserCancelledPathSelection": {
+    "message": "User cancelled learning path selection. Running single-course flow."
+  },
+  "logSelectedLearningPath": {
+    "message": "Selected learning path: $TITLE$ ($COUNT$ courses)",
+    "placeholders": {
+      "title": { "content": "$1", "example": "Data Science" },
+      "count": { "content": "$2", "example": "4" }
+    }
+  },
+  "logNavigatingToCourse": {
+    "message": "Navigating to course: $NAME$",
+    "placeholders": {
+      "name": { "content": "$1", "example": "Introduction to ML" }
+    }
+  },
+  "logCourseCompleted": {
+    "message": "Completed course '$NAME$'. Total questions: $TOTAL$, Assignments processed: $COUNT$",
+    "placeholders": {
+      "name": { "content": "$1", "example": "Introduction to ML" },
+      "total": { "content": "$2", "example": "20" },
+      "count": { "content": "$3", "example": "3" }
+    }
+  },
+  "logAllCoursesCompleted": {
+    "message": "All courses completed. Courses: $COURSES$, Total questions: $TOTAL$",
+    "placeholders": {
+      "courses": { "content": "$1", "example": "4" },
+      "total": { "content": "$2", "example": "80" }
+    }
+  },
+  "pickerTitle": {
+    "message": "Select a learning path to scrape"
+  },
+  "pickerCancel": {
+    "message": "Cancel"
+  },
+  "pickerNoPaths": {
+    "message": "No learning paths found."
+  },
+  "pickerCourseCount": {
+    "message": "$1$ course(s)",
+    "placeholders": { "1": { "content": "$1", "example": "3" } }
+  },
   "correct": {
     "message": "answered correctly"
   },
