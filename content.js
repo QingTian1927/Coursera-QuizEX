@@ -1,30 +1,78 @@
 // content.js
 function scrapeCoursera() {
-    const groups = document.querySelectorAll('[data-testid="part-Submission_GradedMultipleChoiceQuestion"]');
+    // Query both multiple choice (radio) and checkbox questions
+    const radioGroups = document.querySelectorAll('[data-testid="part-Submission_GradedMultipleChoiceQuestion"]');
+    const checkboxGroups = document.querySelectorAll('[data-testid="part-Submission_GradedCheckboxQuestion"]');
+    
     const results = [];
 
-    groups.forEach((group, i) => {
+    // Helper function to process a question group
+    const processGroup = (group, index, questionType) => {
         const number =
             group.querySelector('h3 span')?.innerText.trim() ||
-            (i + 1).toString();
+            (index + 1).toString();
 
         const questionText =
             group.querySelector('[data-testid="legend"] .rc-CML p')?.innerText.trim() ||
             "UNKNOWN QUESTION";
 
         const choiceNodes = group.querySelectorAll('.rc-Option label');
+        
+        // Determine if the question was answered correctly overall
+        const isQuestionCorrect = group.querySelector('[data-testid="icon-correct"]') !== null;
+        
         const choices = [...choiceNodes].map(label => {
             const text = label.querySelector('.rc-CML p')?.innerText.trim() || "";
             const isSelected = label.classList.contains('cui-isChecked') ||
                 label.querySelector('input')?.checked;
-
-            return { text, selected: isSelected };
+            
+            const choice = { text, selected: isSelected };
+            
+            if (questionType === 'checkbox') {
+                // For checkbox questions, each choice has its own correctness indicator
+                const choiceContainer = label.closest('[data-testid]');
+                const hasCorrectIcon = choiceContainer?.querySelector('[data-testid="icon-correct"]') !== null;
+                choice.correct = hasCorrectIcon;
+            } else if (questionType === 'radio') {
+                // For radio questions, look for correctness indicator on individual choices
+                const choiceContainer = label.closest('.rc-Option')?.parentElement;
+                const hasCorrectIcon = choiceContainer?.querySelector('[data-testid="icon-correct"]') !== null;
+                
+                if (hasCorrectIcon) {
+                    // This choice is marked as correct
+                    choice.correct = true;
+                } else if (isQuestionCorrect && isSelected) {
+                    // Question is correct overall and this choice is selected
+                    choice.correct = true;
+                } else if (isQuestionCorrect && !isSelected) {
+                    // Question is correct overall but this choice is not selected
+                    choice.correct = false;
+                }
+                // If question is incorrect and no icon found, we don't set correct property
+            }
+            
+            return choice;
         });
 
-        // Determine if the question was answered correctly
-        const isCorrect = group.querySelector('[data-testid="icon-correct"]') !== null;
+        results.push({ 
+            number, 
+            question: questionText, 
+            choices,
+            type: questionType
+        });
+    };
 
-        results.push({ number, question: questionText, choices, correct: isCorrect });
+    // Process all radio (multiple choice) questions
+    radioGroups.forEach((group, i) => processGroup(group, i, 'radio'));
+    
+    // Process all checkbox questions
+    checkboxGroups.forEach((group, i) => processGroup(group, radioGroups.length + i, 'checkbox'));
+
+    // Sort by question number to maintain order
+    results.sort((a, b) => {
+        const numA = parseInt(a.number) || 0;
+        const numB = parseInt(b.number) || 0;
+        return numA - numB;
     });
 
     return results;

@@ -115,11 +115,23 @@ function generateNormalFormat(data) {
 
     let output = "";
     data.forEach((q, i) => {
-        output += `Q${i + 1}: ${q.question} ${!q.correct ? `(${t.incorrect})` : ''}\n`;
+        // Determine question type label
+        const questionType = q.type === 'checkbox' ? t.multipleChoice : t.singleChoice;
+        output += `Q${i + 1}: ${q.question} (${questionType})\n`;
+        
         q.choices.forEach((c, idx) => {
             const label = getChoiceLabel(idx, q.choices.length);
             const separator = q.choices.length < 10 ? '.' : ')';
-            output += `  ${label}${separator} ${c.text}${c.selected ? " (x)" : ""}\n`;
+            
+            // Build status indicators based on correctness only
+            let status = '';
+            if (c.correct === true) {
+                status = ` (${t.correct})`;
+            } else if (c.correct === false) {
+                status = ` (${t.incorrect})`;
+            }
+            
+            output += `${label}${separator} ${c.text}${status}\n`;
         });
         output += "\n";
     });
@@ -134,29 +146,38 @@ function generateFormattedOutput(data) {
 
     return data
         .map(q => {
-            // Find selected choice and include its label
-            let sel = "";
-            const selectedChoice = q.choices.findIndex(c => c.selected);
-            if (selectedChoice >= 0) {
-                const label = getChoiceLabel(selectedChoice, q.choices.length);
-                const separator = q.choices.length < 10 ? '.' : ')';
-                sel = `${label}${separator} ${q.choices[selectedChoice].text}`;
-            }
+            // Determine question type label
+            const questionType = q.type === 'checkbox' ? t.multipleChoice : t.singleChoice;
             
+            // Find all correct answers
+            const correctAnswers = q.choices
+                .map((c, idx) => ({ choice: c, idx }))
+                .filter(item => item.choice.correct === true)
+                .map(item => {
+                    const label = getChoiceLabel(item.idx, q.choices.length);
+                    const separator = q.choices.length < 10 ? '.' : ')';
+                    return `${label}${separator} ${item.choice.text}`;
+                });
+            
+            // Build choices text
             const choicesText = q.choices.map((c, idx) => {
                 const label = getChoiceLabel(idx, q.choices.length);
                 const separator = q.choices.length < 10 ? '.' : ')';
                 return `${label}${separator} ${c.text}`;
             }).join(formatSettings.choiceSeparator);
-            const statusText = !q.correct ? ` (${t.incorrect})` : '';
             
-            return q.question + 
+            // Build answer section
+            let answerText = '';
+            if (correctAnswers.length > 0) {
+                answerText = correctAnswers.join('\n');
+            }
+            
+            return q.question + ` (${questionType})` +
                    formatSettings.questionSeparator + 
                    choicesText + 
                    "\n" +
                    formatSettings.answerPrefix + 
-                   sel + 
-                   statusText +
+                   answerText +
                    formatSettings.answerSuffix;
         })
         .join("");
@@ -195,6 +216,9 @@ function generateCSVFormat(data) {
     ].join("\n");
     
     const rows = data.map(q => {
+        // Determine question type label
+        const questionType = q.type === 'checkbox' ? t.multipleChoice : t.singleChoice;
+        
         // Format choices with <br> for HTML newlines (one per line)
         const choices = q.choices.map((c, idx) => {
             const label = getChoiceLabel(idx, q.choices.length);
@@ -202,19 +226,26 @@ function generateCSVFormat(data) {
             return `${label}${sep} ${c.text}`;
         }).join("<br>");
 
-        // Front: question + <br> + choices (each on separate line)
-        const front = `${q.question}<br><br>${choices}`;
+        // Front: question (with type) + <br> + choices (each on separate line)
+        const front = `${q.question} (${questionType})<br><br>${choices}`;
 
-        const selectedIdx = q.choices.findIndex(c => c.selected);
-        let back = "";
-        if (selectedIdx >= 0) {
-            const label = getChoiceLabel(selectedIdx, q.choices.length);
-            const sep = q.choices.length < 10 ? '.' : ')';
-            const statusText = !q.correct ? ` (${t.incorrect})` : '';
-            back = `${label}${sep} ${q.choices[selectedIdx].text}${statusText}`;
-        }
+        // Find all correct answers for the back of the card
+        const correctAnswers = q.choices
+            .map((c, idx) => ({ choice: c, idx }))
+            .filter(item => item.choice.correct === true)
+            .map(item => {
+                const label = getChoiceLabel(item.idx, q.choices.length);
+                const sep = q.choices.length < 10 ? '.' : ')';
+                return `${label}${sep} ${item.choice.text}`;
+            });
+        
+        const back = correctAnswers.length > 0 ? correctAnswers.join('<br>') : '';
 
-        const tags = q.correct ? "correct" : "incorrect";
+        // Determine if user got it right (all selected matches correct)
+        const isAnsweredCorrectly = q.choices.every(c => 
+            (c.selected && c.correct === true) || (!c.selected && c.correct !== true)
+        );
+        const tags = isAnsweredCorrectly ? t.correct : t.incorrect;
 
         return [front, back, tags].map(csvEscape).join(",");
     });

@@ -309,10 +309,16 @@
     "placeholders": { "1": { "content": "$1", "example": "3" } }
   },
   "correct": {
-    "message": "answered correctly"
+    "message": "correct"
   },
   "incorrect": {
-    "message": "answered incorrectly"
+    "message": "incorrect"
+  },
+  "singleChoice": {
+    "message": "single choice"
+  },
+  "multipleChoice": {
+    "message": "multiple choice"
   },
   "formatNormal": {
     "message": "Normal"

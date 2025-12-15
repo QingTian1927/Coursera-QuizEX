@@ -191,6 +191,8 @@ const UI_TEXT = {
     // Question Status
     get correct() { return getMessageFromCache('correct', this._currentLang); },
     get incorrect() { return getMessageFromCache('incorrect', this._currentLang); },
+    get singleChoice() { return getMessageFromCache('singleChoice', this._currentLang); },
+    get multipleChoice() { return getMessageFromCache('multipleChoice', this._currentLang); },
     
     // Format Options
     get formatNormal() { return getMessageFromCache('formatNormal', this._currentLang); },

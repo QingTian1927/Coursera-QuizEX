@@ -97,9 +97,9 @@ https://github.com/user-attachments/assets/4882e0ef-a136-40f8-8dc4-7bcab797f3e2
 ### **Normal (Human-Readable)**
 
 ```
-Q1: Which of the following is the most appropriate exploratory research question for this scenario?
+Q1: Which of the following is the most appropriate exploratory research question for this scenario? (single choice)
 A. Is social media harming young people?
-B. How do students aged 14–18 describe the influence of social media on their study habits and focus? (x)
+B. How do students aged 14–18 describe the influence of social media on their study habits and focus? (correct)
 C. How can schools stop students from using social media during study time?
 D. Why do students use TikTok so much?
 ```
@@ -126,22 +126,26 @@ D. Why do students use TikTok so much?
     "choices": [
       {
         "text": "Is social media harming young people?",
-        "selected": false
+        "selected": false,
+        "correct": false
       },
       {
         "text": "How do students aged 14–18 describe the influence of social media on their study habits and focus?",
-        "selected": true
+        "selected": true,
+        "correct": true
       },
       {
         "text": "How can schools stop students from using social media during study time?",
-        "selected": false
+        "selected": false,
+        "correct": false
       },
       {
         "text": "Why do students use TikTok so much?",
-        "selected": false
+        "selected": false,
+        "correct": false
       }
     ],
-    "correct": true
+    "type": "radio"
   }
 ]
 ```
