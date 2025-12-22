@@ -90,6 +90,14 @@ Use this method if you want to **modify the source code** or contribute:
 
 https://github.com/user-attachments/assets/4882e0ef-a136-40f8-8dc4-7bcab797f3e2
 
+https://github.com/user-attachments/assets/435ecf94-69e4-4c24-be25-7fd239dd1c6a
+
+**Notes**
+
+* ⚠️ The multi-course scraping feature is currently **unstable** because learning paths don’t clearly list all of their courses in one place, so the extension has to make its best guess.
+* If a learning path shows **“0 courses found”**, please **reload the page and try again**.
+* To cancel multi-course auto-scraping, **wait a moment and click “Cancel” again** if it doesn’t stop immediately.
+
 ---
 
 ## 📁 Output Examples
