@@ -116,6 +116,15 @@ D. Why do students use TikTok so much?
 <>How do students aged 14–18 describe the influence of social media on their study habits and focus?{}
 ```
 
+### **CSV (Anki Compatible)**
+
+```
+#separator:Comma
+#html:true
+#columns:Front,Back,Tags
+Which of the following is the most appropriate exploratory research question for this scenario? (single choice)<br><br>A. Is social media harming young people?<br>B. How do students aged 14–18 describe the influence of social media on their study habits and focus?<br>C. How can schools stop students from using social media during study time?<br>D. Why do students use TikTok so much?,B. How do students aged 14–18 describe the influence of social media on their study habits and focus?,correct
+```
+
 ### **JSON**
 
 ```json
